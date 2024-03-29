@@ -71,3 +71,11 @@ class NuclearWasteModel(Model):
     def step(self):
         self.schedule.step()
         # TODO : collect data
+
+    def perceive(self, agent):
+        pass
+        # TODO : implement the perceive method
+
+    def do(self, agent, action):
+        pass
+        # TODO : implement the do method
