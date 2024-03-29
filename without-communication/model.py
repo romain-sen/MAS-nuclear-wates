@@ -6,6 +6,7 @@ from mesa.space import MultiGrid
 from mesa.datacollection import DataCollector
 
 from object import RadioactivityAgent, WasteAgent
+from action import handle_action
 
 
 class NuclearWasteModel(Model):
@@ -77,5 +78,4 @@ class NuclearWasteModel(Model):
         # TODO : implement the perceive method
 
     def do(self, agent, action):
-        pass
-        # TODO : implement the do method
+        return handle_action(agent, action, self)
