@@ -1,4 +1,33 @@
+from typing import Dict, List
+
 from mesa import Agent
+
+from action import Action
+from percept import Percept
+
+
+knowledges: Dict[str, List[Percept | Action]] = {
+    "actions": [
+        Action.STAY,
+        Action.RIGHT,
+    ],
+    "percepts": [
+        {
+            "radiactivity": 0.11,
+            "waste1": "green",
+            "waste2": "empty",
+            "pos": (1, 2),
+            "other_on_pos": True,
+        },
+        {
+            "radiactivity": 0.23,
+            "waste1": "green",
+            "waste2": "green",
+            "pos": (2, 2),
+            "other_on_pos": False,
+        },
+    ],
+}
 
 
 class MoneyAgent(Agent):

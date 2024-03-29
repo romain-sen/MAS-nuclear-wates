@@ -1,5 +1,7 @@
 import enum
 
+from mesa import Agent
+
 
 class Action(enum.Enum):
     LEFT = 0
@@ -9,6 +11,7 @@ class Action(enum.Enum):
     TAKE = 4
     DROP = 5
     MERGE = 6
+    STAY = 7
 
     def __str__(self):
         return self.name
@@ -28,7 +31,7 @@ class Action(enum.Enum):
         return Action(i)
 
 
-def move_agent(agent, action):
+def move_agent(agent: Agent, action):
     if action == Action.LEFT:
         pass
     elif action == Action.RIGHT:
@@ -41,19 +44,19 @@ def move_agent(agent, action):
         raise ValueError("Unknown action: {}".format(action))
 
 
-def take(agent):
+def take(agent: Agent):
     pass
 
 
-def drop(agent):
+def drop(agent: Agent):
     pass
 
 
-def merge(agent):
+def merge(agent: Agent):
     pass
 
 
-def get_action_handler(action):
+def get_action_handler(action: Action):
     """Maps each action to its corresponding handler."""
     action_mapping = {
         Action.LEFT: (lambda agent, environment: move_agent(agent, Action.LEFT)),
