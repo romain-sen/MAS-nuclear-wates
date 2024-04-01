@@ -2,6 +2,9 @@ import enum
 
 from mesa import Agent
 
+from percept import Percept
+from model import NuclearWasteModel
+
 
 class Action(enum.Enum):
     LEFT = 0
@@ -31,7 +34,7 @@ class Action(enum.Enum):
         return Action(i)
 
 
-def move_agent(agent: Agent, action):
+def move_agent(agent: Agent, action: Action, environment: NuclearWasteModel):
     if action == Action.LEFT:
         pass
     elif action == Action.RIGHT:
@@ -44,25 +47,33 @@ def move_agent(agent: Agent, action):
         raise ValueError("Unknown action: {}".format(action))
 
 
-def take(agent: Agent):
+def take(agent: Agent, environment: NuclearWasteModel):
     pass
 
 
-def drop(agent: Agent):
+def drop(agent: Agent, environment: NuclearWasteModel):
     pass
 
 
-def merge(agent: Agent):
+def merge(agent: Agent, environment: NuclearWasteModel):
     pass
 
 
 def get_action_handler(action: Action):
     """Maps each action to its corresponding handler."""
     action_mapping = {
-        Action.LEFT: (lambda agent, environment: move_agent(agent, Action.LEFT)),
-        Action.RIGHT: (lambda agent, environment: move_agent(agent, Action.RIGHT)),
-        Action.UP: (lambda agent, environment: move_agent(agent, Action.UP)),
-        Action.DOWN: (lambda agent, environment: move_agent(agent, Action.DOWN)),
+        Action.LEFT: (
+            lambda agent, environment: move_agent(agent, Action.LEFT, environment)
+        ),
+        Action.RIGHT: (
+            lambda agent, environment: move_agent(agent, Action.RIGHT, environment)
+        ),
+        Action.UP: (
+            lambda agent, environment: move_agent(agent, Action.UP, environment)
+        ),
+        Action.DOWN: (
+            lambda agent, environment: move_agent(agent, Action.DOWN, environment)
+        ),
         Action.TAKE: take,
         Action.DROP: drop,
         Action.MERGE: merge,
@@ -74,7 +85,9 @@ def get_action_handler(action: Action):
     return handler
 
 
-def handle_action(agent, action, environment):
+def handle_action(
+    agent: Agent, action: Action, environment: NuclearWasteModel
+) -> Percept:
     """Executes the corresponding handler based on the action."""
     action_enum = Action(action)
     handler = get_action_handler(action_enum)
