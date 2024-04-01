@@ -7,6 +7,7 @@ from mesa.datacollection import DataCollector
 
 from object import RadioactivityAgent, WasteAgent
 from action import handle_action
+from agent import CleaningAgent
 
 
 class NuclearWasteModel(Model):
@@ -79,3 +80,9 @@ class NuclearWasteModel(Model):
 
     def do(self, agent, action):
         return handle_action(agent, action, self)
+
+    def others_on_pos(self, agent: CleaningAgent):
+        """
+        Check if there are other agents on the same position as the given agent.
+        """
+        return len(self.grid.get_cell_list_contents([agent.pos])) > 1

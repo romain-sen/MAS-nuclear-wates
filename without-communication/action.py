@@ -4,6 +4,7 @@ from mesa import Agent
 
 from percept import Percept
 from model import NuclearWasteModel
+from agent import AgentColor
 
 
 class Action(enum.Enum):
@@ -34,15 +35,80 @@ class Action(enum.Enum):
         return Action(i)
 
 
+def stays_in_area(pos, environment, color: AgentColor):
+    """
+    Check if the agent remains within its designated area based on its color.
+
+    Each color (GREEN, YELLOW, RED) has a different right boundary within the grid.
+    - GREEN agents are limited to the first third of the grid width.
+    - YELLOW agents are limited to the first two-thirds.
+    - RED agents can move throughout the grid width.
+
+    Parameters:
+    - pos (tuple): The (x, y) position of the agent.
+    - environment (Environment): The environment object containing the grid.
+    - color (AgentColor): The color of the agent, determining its allowed area.
+
+    Returns:
+    - bool: True if the agent stays in the valid area, False otherwise.
+    """
+
+    # Vertical boundaries are the same for all agents.
+    within_vertical_limits = 0 < pos[1] < environment.grid.height - 1
+
+    # Horizontal boundaries depend on the agent's color.
+    right_boundaries = {
+        AgentColor.GREEN: environment.grid.width // 3 - 1,
+        AgentColor.YELLOW: 2 * environment.grid.width // 3 - 1,
+        AgentColor.RED: environment.grid.width - 1,
+    }
+    within_horizontal_limits = 0 < pos[0] < right_boundaries[color]
+
+    return within_vertical_limits and within_horizontal_limits
+
+
 def move_agent(agent: Agent, action: Action, environment: NuclearWasteModel):
+    pos = agent.pos
     if action == Action.LEFT:
-        pass
+        if stays_in_area((pos[0] - 1, pos[1]), environment, agent.color):
+            agent.model.grid.move_agent(agent, (pos[0] - 1, pos[1]))
+        return Percept(
+            radiactivity=environment.get_radiactivity(pos),
+            waste1=None,
+            waste2=None,
+            pos=(pos[0] - 1, pos[1]),
+            other_on_pos=environment.others_on_pos(agent),
+        )
     elif action == Action.RIGHT:
-        pass
+        if stays_in_area((pos[0] + 1, pos[1]), environment, agent.color):
+            agent.model.grid.move_agent(agent, (pos[0] + 1, pos[1]))
+        return Percept(
+            radiactivity=environment.get_radiactivity(pos),
+            waste1=None,
+            waste2=None,
+            pos=(pos[0] + 1, pos[1]),
+            other_on_pos=environment.others_on_pos(agent),
+        )
     elif action == Action.UP:
-        pass
+        if stays_in_area((pos[0], pos[1] + 1), environment, agent.color):
+            agent.model.grid.move_agent(agent, (pos[0], pos[1] + 1))
+        return Percept(
+            radiactivity=environment.get_radiactivity(pos),
+            waste1=None,
+            waste2=None,
+            pos=(pos[0], pos[1] + 1),
+            other_on_pos=environment.others_on_pos(agent),
+        )
     elif action == Action.DOWN:
-        pass
+        if stays_in_area((pos[0], pos[1] - 1), environment, agent.color):
+            agent.model.grid.move_agent(agent, (pos[0], pos[1] - 1))
+        return Percept(
+            radiactivity=environment.get_radiactivity(pos),
+            waste1=None,
+            waste2=None,
+            pos=(pos[0], pos[1] - 1),
+            other_on_pos=environment.others_on_pos(agent),
+        )
     else:
         raise ValueError("Unknown action: {}".format(action))
 
