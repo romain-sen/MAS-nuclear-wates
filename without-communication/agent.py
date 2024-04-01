@@ -1,4 +1,5 @@
 from typing import Dict, List, TypedDict
+import enum
 
 from mesa import Agent
 
@@ -9,6 +10,12 @@ from percept import Percept
 class Knowledge(TypedDict):
     actions: List[Action]
     percepts: List[Percept]
+
+
+class AgentColor(enum.Enum):
+    RED = 0
+    YELLOW = 1
+    GREEN = 2
 
 
 knowledges: Knowledge = {
@@ -41,8 +48,9 @@ def update(knowledge: Knowledge, percepts: Percept, actions: Action):
 
 
 class CleaningAgent(Agent):
-    def __init__(self, unique_id, model):
+    def __init__(self, unique_id: int, color: AgentColor, model):
         super().__init__(unique_id, model)
+        self.color = color
         self.knowledge = knowledges
         self.percept_temp = None
         self.action_temp = None
