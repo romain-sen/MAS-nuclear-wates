@@ -7,7 +7,9 @@ from mesa.datacollection import DataCollector
 
 from object import RadioactivityAgent, WasteAgent
 from action import handle_action
-from agent import CleaningAgent, AgentColor
+from agent import RandomCleaningAgent, CleaningAgent
+
+from types_1 import AgentColor
 
 
 class NuclearWasteModel(Model):
@@ -55,9 +57,10 @@ class NuclearWasteModel(Model):
             self.grid.place_agent(a, (x, y))
             id += 1
 
+        # Add the wastes
         # TODO : change the probability of the wastes to be placed in the grid (more on the west)
         id = 0
-        for i in range(self.num_objects):
+        for i in range(self.num_wastes):
             x = self.random.randrange(self.grid.width)
             y = self.random.randrange(self.grid.height)
             if x < self.grid.width // 3:
@@ -82,7 +85,7 @@ class NuclearWasteModel(Model):
             else:
                 x = self.random.randrange(self.grid.width // 3)
             y = self.random.randrange(self.grid.height)
-            a = CleaningAgent(unique_id=i, color=color, model=self)
+            a = RandomCleaningAgent(unique_id=i, color=color, model=self)
             self.schedule.add(a)
             self.grid.place_agent(a, (x, y))
 
@@ -95,10 +98,19 @@ class NuclearWasteModel(Model):
         # TODO : implement the perceive method
 
     def do(self, agent, action):
-        return handle_action(agent, action, self)
+        return handle_action(agent=agent, action=action, environment=self)
 
     def others_on_pos(self, agent: CleaningAgent):
         """
         Check if there are other agents on the same position as the given agent.
         """
         return len(self.grid.get_cell_list_contents([agent.pos])) > 1
+
+    def get_radioactivity(self, pos):
+        """
+        Get the radioactivity at the given position.
+        """
+        cell_content = self.grid.get_cell_list_contents([pos])
+        if cell_content:
+            return cell_content[0].indicate_radioactivity()
+        return 0

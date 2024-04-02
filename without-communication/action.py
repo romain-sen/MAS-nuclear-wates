@@ -1,38 +1,8 @@
 import enum
 
-from mesa import Agent
+from mesa import Agent, Model
 
-from percept import Percept
-from model import NuclearWasteModel
-from agent import AgentColor
-
-
-class Action(enum.Enum):
-    LEFT = 0
-    RIGHT = 1
-    UP = 2
-    DOWN = 3
-    TAKE = 4
-    DROP = 5
-    MERGE = 6
-    STAY = 7
-
-    def __str__(self):
-        return self.name
-
-    def __repr__(self):
-        return self.name
-
-    def to_dict(self):
-        return self.name
-
-    @staticmethod
-    def from_dict(d):
-        return Action[d]
-
-    @staticmethod
-    def from_int(i):
-        return Action(i)
+from types_1 import Action, AgentColor, Percept
 
 
 def stays_in_area(pos, environment, color: AgentColor):
@@ -67,13 +37,13 @@ def stays_in_area(pos, environment, color: AgentColor):
     return within_vertical_limits and within_horizontal_limits
 
 
-def move_agent(agent: Agent, action: Action, environment: NuclearWasteModel):
+def move_agent(agent: Agent, action: Action, environment):
     pos = agent.pos
     if action == Action.LEFT:
         if stays_in_area((pos[0] - 1, pos[1]), environment, agent.color):
             agent.model.grid.move_agent(agent, (pos[0] - 1, pos[1]))
         return Percept(
-            radiactivity=environment.get_radiactivity(pos),
+            radiactivity=environment.get_radioactivity(pos),
             waste1=None,
             waste2=None,
             pos=(pos[0] - 1, pos[1]),
@@ -83,7 +53,7 @@ def move_agent(agent: Agent, action: Action, environment: NuclearWasteModel):
         if stays_in_area((pos[0] + 1, pos[1]), environment, agent.color):
             agent.model.grid.move_agent(agent, (pos[0] + 1, pos[1]))
         return Percept(
-            radiactivity=environment.get_radiactivity(pos),
+            radiactivity=environment.get_radioactivity(pos),
             waste1=None,
             waste2=None,
             pos=(pos[0] + 1, pos[1]),
@@ -93,7 +63,7 @@ def move_agent(agent: Agent, action: Action, environment: NuclearWasteModel):
         if stays_in_area((pos[0], pos[1] + 1), environment, agent.color):
             agent.model.grid.move_agent(agent, (pos[0], pos[1] + 1))
         return Percept(
-            radiactivity=environment.get_radiactivity(pos),
+            radiactivity=environment.get_radioactivity(pos),
             waste1=None,
             waste2=None,
             pos=(pos[0], pos[1] + 1),
@@ -103,7 +73,7 @@ def move_agent(agent: Agent, action: Action, environment: NuclearWasteModel):
         if stays_in_area((pos[0], pos[1] - 1), environment, agent.color):
             agent.model.grid.move_agent(agent, (pos[0], pos[1] - 1))
         return Percept(
-            radiactivity=environment.get_radiactivity(pos),
+            radiactivity=environment.get_radioactivity(pos),
             waste1=None,
             waste2=None,
             pos=(pos[0], pos[1] - 1),
@@ -113,15 +83,15 @@ def move_agent(agent: Agent, action: Action, environment: NuclearWasteModel):
         raise ValueError("Unknown action: {}".format(action))
 
 
-def take(agent: Agent, environment: NuclearWasteModel):
+def take(agent: Agent, environment: Model):
     pass
 
 
-def drop(agent: Agent, environment: NuclearWasteModel):
+def drop(agent: Agent, environment: Model):
     pass
 
 
-def merge(agent: Agent, environment: NuclearWasteModel):
+def merge(agent: Agent, environment: Model):
     pass
 
 
@@ -151,10 +121,7 @@ def get_action_handler(action: Action):
     return handler
 
 
-def handle_action(
-    agent: Agent, action: Action, environment: NuclearWasteModel
-) -> Percept:
+def handle_action(agent: Agent, action: Action, environment: Model) -> Percept:
     """Executes the corresponding handler based on the action."""
-    action_enum = Action(action)
-    handler = get_action_handler(action_enum)
+    handler = get_action_handler(action=action)
     return handler(agent, environment)
