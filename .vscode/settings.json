@@ -1,3 +1,12 @@
 {
-  "conventionalCommits.scopes": ["nocom", "objects", "model"]
+  "conventionalCommits.scopes": [
+    "nocom",
+    "objects",
+    "model",
+    "action",
+    "agent",
+    "action",
+    "run"
+  ],
+  "python.analysis.extraPaths": ["./without-communication"]
 }

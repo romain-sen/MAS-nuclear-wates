@@ -1,34 +1,36 @@
 from mesa import Agent
 
+from action import Action
+from types_1 import AgentColor, Knowledge, Percept
 
-class MoneyAgent(Agent):
-    def __init__(self, unique_id, model):
+
+def update(knowledge: Knowledge, percepts: Percept, actions: Action):
+    if percepts:
+        knowledge["percepts"].append(percepts)
+    if actions:
+        knowledge["actions"].append(actions)
+
+
+class CleaningAgent(Agent):
+    def __init__(self, unique_id: int, color: AgentColor, model):
         super().__init__(unique_id, model)
-        self.wealth = 1
+        self.color = color
+        self.knowledge = {"actions": [], "percepts": []}
+        self.percept_temp = None
+        self.action_temp = None
 
-    def receive(self, amount):
-        self.wealth += amount
-        # print(f"Agent {self.unique_id} has received {amount}")
-
-    def share_with_neighbors(self):
-        cellmates = self.model.grid.get_cell_list_contents([self.pos])
-        if len(cellmates) > 1:
-            other = self.random.choice(cellmates)
-            if self.wealth > 0:
-                amount = 1
-                self.wealth -= amount
-                other.receive(amount)
-                # print(f"Agent {self.unique_id} has given {amount} to Agent {other.unique_id}")
-
-    def move(self):
-        self.model.grid.move_agent(
-            self,
-            self.random.choice(self.model.grid.get_neighborhood(self.pos, moore=True)),
-        )
+    def deliberate(self) -> Action:
+        pass
 
     def step(self):
-        self.move()
-        self.share_with_neighbors()
+        update(self.knowledge, self.percept_temp, self.action_temp)
+        action = self.deliberate()
+        self.action_temp = action
+        self.percept_temp = self.model.do(self, action)
 
-    def indicate_wealth(self):
-        return self.wealth
+
+class RandomCleaningAgent(CleaningAgent):
+    def deliberate(self) -> Action:
+        # Choose randomly an action to move
+        movables = [Action.UP, Action.DOWN, Action.LEFT, Action.RIGHT]
+        return movables[self.random.randrange(4)]
