@@ -9,7 +9,22 @@ from object import RadioactivityAgent, WasteAgent
 from action import handle_action
 from agent import RandomCleaningAgent, CleaningAgent
 
-from types_1 import AgentColor
+from types_1 import AgentColor, PickedWastes
+from typing import List
+
+
+def find_picked_waste_by_id(waste_id: int, picked_wastes_list: List[PickedWastes]):
+    """
+    Find a PickedWastes object in a list by its wasteId.
+
+    :param waste_id: The wasteId to search for.
+    :param picked_wastes_list: The list of PickedWastes objects.
+    :return: The PickedWastes object with the matching wasteId, or None if not found.
+    """
+    for picked_waste in picked_wastes_list:
+        if picked_waste.wasteId == waste_id:
+            return picked_waste
+    return None
 
 
 class NuclearWasteModel(Model):
@@ -22,6 +37,7 @@ class NuclearWasteModel(Model):
         self.num_agents = N_AGENTS
         self.num_wastes = N_WASTES
         self.grid = MultiGrid(width, height, True)
+        self.picked_wastes_list: List[PickedWastes] = []
 
         # TODO : Move schedule to the schedule.py
         self.schedule = RandomActivation(self)
@@ -111,6 +127,96 @@ class NuclearWasteModel(Model):
         Get the radioactivity at the given position.
         """
         cell_content = self.grid.get_cell_list_contents([pos])
-        if cell_content:
-            return cell_content[0].indicate_radioactivity()
+        waste_agents = [
+            obj for obj in cell_content if isinstance(obj, RadioactivityAgent)
+        ]
+        if waste_agents != []:
+            return waste_agents[0].indicate_radioactivity()
         return 0
+
+    def get_who_picked_waste(self, waste_id: int) -> int:
+        """
+        Get the agent who picked the waste.
+        Return -1 if the waste is not picked.
+        """
+        picked_waste = find_picked_waste_by_id(waste_id, self.picked_wastes_list)
+        if picked_waste is None:
+            return -1
+        return picked_waste.agentId
+
+    def give_waste_agent(self, waste_id: int, waste_color, agent_id: int):
+        """
+        Give the waste to the agent.
+        """
+        # Check if the waste is already picked
+        picked_waste = find_picked_waste_by_id(waste_id, self.picked_wastes_list)
+        if picked_waste is not None:
+            raise Exception("Waste already picked.")
+        # Check if the agent is already carrying two wastes
+        if (
+            len(
+                [
+                    waste
+                    for waste in self.picked_wastes_list
+                    if waste.agentId == agent_id
+                ]
+            )
+            >= 2
+        ):
+            raise Exception("Agent already carrying two wastes.")
+
+        # Add the waste to the picked wastes list of the environment
+        self.picked_wastes_list.append(
+            PickedWastes(agentId=agent_id, wasteId=waste_id, wasteColor=waste_color)
+        )
+        # Remove the waste from the grid
+        waste = self.grid.get_cell_list_contents([self.grid.coord_iter()])[waste_id]
+        self.grid.remove_agent(waste)
+
+    def drop_waste(self, waste_id: int, agent_id: int, pos: tuple[int, int]):
+        """
+        Drop the waste from the agent.
+        """
+        waste = find_picked_waste_by_id(waste_id, self.picked_wastes_list)
+        # If no waste, raise an exception
+        if waste is None:
+            raise Exception("No waste to drop.")
+        # Add the waste to the grid
+        waste_agent = WasteAgent(waste.wasteId, waste.wasteColor, self)
+        self.grid.place_agent(waste_agent, pos)
+        self.schedule.add(waste_agent)
+        # Remove the waste of the picked wastes list of the environment
+        self.picked_wastes_list.remove(waste)
+
+    def merge_wastes(self, waste_id1: int, waste_id2: int, agent_id: int) -> WasteAgent:
+        """
+        Merge the two wastes into a new one and return it.
+        If the two wastes are of different colors or one of them is red, raise an exception.
+        2 green -> 1 yellow
+        2 yellow -> 1 red
+        """
+        waste1 = find_picked_waste_by_id(waste_id1, self.picked_wastes_list)
+        waste2 = find_picked_waste_by_id(waste_id2, self.picked_wastes_list)
+        # Check if the two wastes are the same color, and the color is not red
+        if (
+            waste1["wasteColor"] != waste2["wasteColor"]
+            or waste1["wasteColor"] == AgentColor.RED
+        ):
+            raise Exception(
+                "Cannot merge wastes of different colors or with red waste."
+            )
+
+        if waste1["wasteColor"] == AgentColor.GREEN:
+            waste_color = AgentColor.YELLOW
+        else:
+            waste_color = AgentColor.RED
+
+        # Remove the two wastes from the picked wastes list of the environment
+        self.picked_wastes_list.remove(waste1)
+        self.picked_wastes_list.remove(waste2)
+
+        # Add the new waste to the picked wastes list of the environment, taking the first id
+        self.picked_wastes_list.append(
+            PickedWastes(agentId=agent_id, wasteId=waste_id1, wasteColor=waste_color)
+        )
+        return WasteAgent(waste_id1, waste_color, self)

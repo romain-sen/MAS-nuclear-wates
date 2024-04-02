@@ -6,7 +6,8 @@
     "action",
     "agent",
     "action",
-    "run"
+    "run",
+    "types"
   ],
   "python.analysis.extraPaths": ["./without-communication"]
 }
