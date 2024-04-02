@@ -9,7 +9,8 @@ from object import RadioactivityAgent, WasteAgent
 from action import handle_action
 from agent import RandomCleaningAgent, CleaningAgent
 
-from types_1 import AgentColor
+from types_1 import AgentColor, PickedWastes
+from typing import List
 
 
 class NuclearWasteModel(Model):
@@ -22,6 +23,7 @@ class NuclearWasteModel(Model):
         self.num_agents = N_AGENTS
         self.num_wastes = N_WASTES
         self.grid = MultiGrid(width, height, True)
+        self.picked_wastes_list: List[PickedWastes] = []
 
         # TODO : Move schedule to the schedule.py
         self.schedule = RandomActivation(self)

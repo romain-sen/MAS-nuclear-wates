@@ -1,4 +1,5 @@
 from mesa import Agent
+from types_1 import AgentColor
 
 
 class RadioactivityAgent(Agent):
@@ -14,7 +15,7 @@ class RadioactivityAgent(Agent):
 
 
 class WasteAgent(Agent):
-    def __init__(self, unique_id, color, model):
+    def __init__(self, unique_id, color: AgentColor, model):
         super().__init__(unique_id, model)
         self.color = color
 

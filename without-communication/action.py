@@ -2,7 +2,7 @@ import enum
 
 from mesa import Agent, Model
 
-from types_1 import Action, AgentColor, Percept
+from types_1 import Action, AgentColor, Percept, NuclearWasteModel
 
 
 def stays_in_area(pos, environment, color: AgentColor):
@@ -121,7 +121,9 @@ def get_action_handler(action: Action):
     return handler
 
 
-def handle_action(agent: Agent, action: Action, environment: Model) -> Percept:
+def handle_action(
+    agent: Agent, action: Action, environment: NuclearWasteModel
+) -> Percept:
     """Executes the corresponding handler based on the action."""
     handler = get_action_handler(action=action)
     return handler(agent, environment)

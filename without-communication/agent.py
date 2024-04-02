@@ -1,7 +1,7 @@
 from mesa import Agent
 
 from action import Action
-from types_1 import AgentColor, Knowledge, Percept
+from types_1 import AgentColor, Knowledge, Percept, CleaningAgent
 
 
 def update(knowledge: Knowledge, percepts: Percept, actions: Action):
