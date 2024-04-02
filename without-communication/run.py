@@ -1,11 +1,6 @@
-from model import MoneyModel
+from model import NuclearWasteModel
 import seaborn as sns
 
-model = MoneyModel(50, 10, 10)  # 50 agents in our example
-for i in range(100):
+model = NuclearWasteModel(N_AGENTS=5, N_WASTES=10, width=100, height=100)
+for i in range(10):
     model.step()
-
-gini = model.datacollector.get_model_vars_dataframe()["Gini"]
-
-g = sns.lineplot(data=gini)
-g.set(title="Gini Coefficient over Time", ylabel="Gini Coefficient")

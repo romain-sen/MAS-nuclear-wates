@@ -7,7 +7,7 @@ from mesa.datacollection import DataCollector
 
 from object import RadioactivityAgent, WasteAgent
 from action import handle_action
-from agent import CleaningAgent
+from agent import CleaningAgent, AgentColor
 
 
 class NuclearWasteModel(Model):
@@ -69,6 +69,22 @@ class NuclearWasteModel(Model):
             self.schedule.add(a)
             self.grid.place_agent(a, (x, y))
             id += 1
+
+        # Add the cleaning agents
+        for i in range(self.num_agents):
+            color = random.choice(list(AgentColor))
+            if color == AgentColor.RED:
+                x = self.random.randrange(2 * self.grid.width // 3, self.grid.width)
+            elif color == AgentColor.YELLOW:
+                x = self.random.randrange(
+                    self.grid.width // 3, 2 * self.grid.width // 3
+                )
+            else:
+                x = self.random.randrange(self.grid.width // 3)
+            y = self.random.randrange(self.grid.height)
+            a = CleaningAgent(unique_id=i, color=color, model=self)
+            self.schedule.add(a)
+            self.grid.place_agent(a, (x, y))
 
     def step(self):
         self.schedule.step()
