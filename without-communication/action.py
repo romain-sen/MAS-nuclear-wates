@@ -1,5 +1,3 @@
-import enum
-
 from mesa import Agent, Model
 
 from types_1 import Action, AgentColor, Percept, NuclearWasteModel
