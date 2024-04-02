@@ -1,5 +1,6 @@
 from mesa import Agent, Model
 
+from object import WasteAgent
 from types_1 import Action, AgentColor, Percept, NuclearWasteModel
 
 
@@ -81,15 +82,61 @@ def move_agent(agent: Agent, action: Action, environment):
         raise ValueError("Unknown action: {}".format(action))
 
 
-def take(agent: Agent, environment: Model):
+def take(agent: Agent, environment: NuclearWasteModel):
+    # Check if the agent is already carrying two wastes
+    if agent.waste1 is not None and agent.waste2 is not None:
+        return Percept(
+            radiactivity=environment.get_radioactivity(agent.pos),
+            waste1=agent.waste1,
+            waste2=agent.waste2,
+            pos=agent.pos,
+            other_on_pos=environment.others_on_pos(agent),
+        )
+    # Get the waste agent at the agent's position
+    cell_content = environment.grid.get_cell_list_contents([agent.pos])
+    waste_agents = [obj for obj in cell_content if isinstance(obj, WasteAgent)]
+    if waste_agents:
+        # Pick the first waste agent found
+        waste_agent = waste_agents[0]
+        # Get the last percept of the agent
+        last_percept = agent.give_last_percept()
+        try:
+            environment.give_waste_agent(
+                waste_agent.unique_id, waste_agent.color, agent.unique_id
+            )
+            if last_percept.waste1 is None:
+                percept = Percept(
+                    radiactivity=environment.get_radioactivity(agent.pos),
+                    waste1=waste_agent,
+                    waste2=None,
+                    pos=agent.pos,
+                    other_on_pos=environment.others_on_pos(agent),
+                )
+            else:
+                percept = Percept(
+                    radiactivity=environment.get_radioactivity(agent.pos),
+                    waste1=last_percept.waste1,
+                    waste2=waste_agent,
+                    pos=agent.pos,
+                    other_on_pos=environment.others_on_pos(agent),
+                )
+            return percept
+        except Exception as e:
+            print(e)
+            return Percept(
+                radiactivity=environment.get_radioactivity(agent.pos),
+                waste1=last_percept.waste1,
+                waste2=last_percept.waste2,
+                pos=agent.pos,
+                other_on_pos=environment.others_on_pos(agent),
+            )
+
+
+def drop(agent: Agent, environment: NuclearWasteModel):
     pass
 
 
-def drop(agent: Agent, environment: Model):
-    pass
-
-
-def merge(agent: Agent, environment: Model):
+def merge(agent: Agent, environment: NuclearWasteModel):
     pass
 
 

@@ -28,6 +28,9 @@ class CleaningAgent(Agent):
         self.action_temp = action
         self.percept_temp = self.model.do(self, action)
 
+    def give_last_percept(self):
+        return self.percept_temp
+
 
 class RandomCleaningAgent(CleaningAgent):
     def deliberate(self) -> Action:

@@ -85,6 +85,8 @@ class CleaningAgent(Agent):
 
     def step(self): ...
 
+    def give_last_percept(self) -> Percept: ...
+
 
 class NuclearWasteModel(Model):
     """

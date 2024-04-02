@@ -145,6 +145,10 @@ class NuclearWasteModel(Model):
         """
         Give the waste to the agent.
         """
+        # Check if the waste is already picked
+        picked_waste = find_picked_waste_by_id(waste_id, self.picked_wastes_list)
+        if picked_waste is not None:
+            raise Exception("Waste already picked.")
         # Add the waste to the picked wastes list of the environment
         self.picked_wastes_list.append(
             PickedWastes(agentId=agent_id, wasteId=waste_id, wasteColor=waste_color)
