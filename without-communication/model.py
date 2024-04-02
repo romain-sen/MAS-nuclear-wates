@@ -127,8 +127,11 @@ class NuclearWasteModel(Model):
         Get the radioactivity at the given position.
         """
         cell_content = self.grid.get_cell_list_contents([pos])
-        if cell_content:
-            return cell_content[0].indicate_radioactivity()
+        waste_agents = [
+            obj for obj in cell_content if isinstance(obj, RadioactivityAgent)
+        ]
+        if waste_agents != []:
+            return waste_agents[0].indicate_radioactivity()
         return 0
 
     def get_who_picked_waste(self, waste_id: int) -> int:
