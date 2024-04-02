@@ -1,7 +1,5 @@
-from mesa import Agent, Model
-
 from object import WasteAgent
-from types_1 import Action, AgentColor, Percept, NuclearWasteModel
+from types_1 import Action, AgentColor, Percept, NuclearWasteModel, CleaningAgent
 
 
 def stays_in_area(pos, environment, color: AgentColor):
@@ -36,7 +34,7 @@ def stays_in_area(pos, environment, color: AgentColor):
     return within_vertical_limits and within_horizontal_limits
 
 
-def move_agent(agent: Agent, action: Action, environment):
+def move_agent(agent: CleaningAgent, action: Action, environment):
     pos = agent.pos
     if action == Action.LEFT:
         if stays_in_area((pos[0] - 1, pos[1]), environment, agent.color):
@@ -82,24 +80,15 @@ def move_agent(agent: Agent, action: Action, environment):
         raise ValueError("Unknown action: {}".format(action))
 
 
-def take(agent: Agent, environment: NuclearWasteModel):
-    # Check if the agent is already carrying two wastes
-    if agent.waste1 is not None and agent.waste2 is not None:
-        return Percept(
-            radiactivity=environment.get_radioactivity(agent.pos),
-            waste1=agent.waste1,
-            waste2=agent.waste2,
-            pos=agent.pos,
-            other_on_pos=environment.others_on_pos(agent),
-        )
+def take(agent: CleaningAgent, environment: NuclearWasteModel):
+    # Get the last percept of the agent
+    last_percept = agent.give_last_percept()
     # Get the waste agent at the agent's position
     cell_content = environment.grid.get_cell_list_contents([agent.pos])
     waste_agents = [obj for obj in cell_content if isinstance(obj, WasteAgent)]
     if waste_agents:
         # Pick the first waste agent found
         waste_agent = waste_agents[0]
-        # Get the last percept of the agent
-        last_percept = agent.give_last_percept()
         try:
             environment.give_waste_agent(
                 waste_agent.unique_id, waste_agent.color, agent.unique_id
@@ -130,13 +119,41 @@ def take(agent: Agent, environment: NuclearWasteModel):
                 pos=agent.pos,
                 other_on_pos=environment.others_on_pos(agent),
             )
+    return Percept(
+        radiactivity=environment.get_radioactivity(agent.pos),
+        waste1=last_percept.waste1,
+        waste2=last_percept.waste2,
+        pos=agent.pos,
+        other_on_pos=environment.others_on_pos(agent),
+    )
 
 
-def drop(agent: Agent, environment: NuclearWasteModel):
-    pass
+def drop(agent: CleaningAgent, environment: NuclearWasteModel):
+    # Get the last percept of the agent
+    last_percept = agent.give_last_percept()
+    try:
+        # TODO: Drop the first waste of the list
+        waste_id = last_percept.waste1.unique_id
+        environment.drop_waste(waste_id, agent.unique_id, agent.pos)
+        return Percept(
+            radiactivity=environment.get_radioactivity(agent.pos),
+            waste1=None,
+            waste2=last_percept.waste2,
+            pos=agent.pos,
+            other_on_pos=environment.others_on_pos(agent),
+        )
+    except Exception as e:
+        print(e)
+        return Percept(
+            radiactivity=environment.get_radioactivity(agent.pos),
+            waste1=last_percept.waste1,
+            waste2=last_percept.waste2,
+            pos=agent.pos,
+            other_on_pos=environment.others_on_pos(agent),
+        )
 
 
-def merge(agent: Agent, environment: NuclearWasteModel):
+def merge(agent: CleaningAgent, environment: NuclearWasteModel):
     pass
 
 
@@ -167,7 +184,7 @@ def get_action_handler(action: Action):
 
 
 def handle_action(
-    agent: Agent, action: Action, environment: NuclearWasteModel
+    agent: CleaningAgent, action: Action, environment: NuclearWasteModel
 ) -> Percept:
     """Executes the corresponding handler based on the action."""
     handler = get_action_handler(action=action)
