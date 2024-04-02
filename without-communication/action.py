@@ -35,47 +35,56 @@ def stays_in_area(pos, environment, color: AgentColor):
 
 
 def move_agent(agent: CleaningAgent, action: Action, environment):
+    last_percept = agent.give_last_percept()
     pos = agent.pos
     if action == Action.LEFT:
         if stays_in_area((pos[0] - 1, pos[1]), environment, agent.color):
             agent.model.grid.move_agent(agent, (pos[0] - 1, pos[1]))
-        return Percept(
-            radiactivity=environment.get_radioactivity(pos),
-            waste1=None,
-            waste2=None,
-            pos=(pos[0] - 1, pos[1]),
-            other_on_pos=environment.others_on_pos(agent),
-        )
+            return Percept(
+                radiactivity=environment.get_radioactivity(pos),
+                waste1=None,
+                waste2=None,
+                pos=(pos[0] - 1, pos[1]),
+                other_on_pos=environment.others_on_pos(agent),
+            )
+        else:
+            return last_percept
     elif action == Action.RIGHT:
         if stays_in_area((pos[0] + 1, pos[1]), environment, agent.color):
             agent.model.grid.move_agent(agent, (pos[0] + 1, pos[1]))
-        return Percept(
-            radiactivity=environment.get_radioactivity(pos),
-            waste1=None,
-            waste2=None,
-            pos=(pos[0] + 1, pos[1]),
-            other_on_pos=environment.others_on_pos(agent),
-        )
+            return Percept(
+                radiactivity=environment.get_radioactivity(pos),
+                waste1=None,
+                waste2=None,
+                pos=(pos[0] + 1, pos[1]),
+                other_on_pos=environment.others_on_pos(agent),
+            )
+        else:
+            return last_percept
     elif action == Action.UP:
         if stays_in_area((pos[0], pos[1] + 1), environment, agent.color):
             agent.model.grid.move_agent(agent, (pos[0], pos[1] + 1))
-        return Percept(
-            radiactivity=environment.get_radioactivity(pos),
-            waste1=None,
-            waste2=None,
-            pos=(pos[0], pos[1] + 1),
-            other_on_pos=environment.others_on_pos(agent),
-        )
+            return Percept(
+                radiactivity=environment.get_radioactivity(pos),
+                waste1=None,
+                waste2=None,
+                pos=(pos[0], pos[1] + 1),
+                other_on_pos=environment.others_on_pos(agent),
+            )
+        else:
+            return last_percept
     elif action == Action.DOWN:
         if stays_in_area((pos[0], pos[1] - 1), environment, agent.color):
             agent.model.grid.move_agent(agent, (pos[0], pos[1] - 1))
-        return Percept(
-            radiactivity=environment.get_radioactivity(pos),
-            waste1=None,
-            waste2=None,
-            pos=(pos[0], pos[1] - 1),
-            other_on_pos=environment.others_on_pos(agent),
-        )
+            return Percept(
+                radiactivity=environment.get_radioactivity(pos),
+                waste1=None,
+                waste2=None,
+                pos=(pos[0], pos[1] - 1),
+                other_on_pos=environment.others_on_pos(agent),
+            )
+        else:
+            return last_percept
     else:
         raise ValueError("Unknown action: {}".format(action))
 
