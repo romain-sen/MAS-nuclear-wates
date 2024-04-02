@@ -112,20 +112,8 @@ def take(agent: CleaningAgent, environment: NuclearWasteModel):
             return percept
         except Exception as e:
             print(e)
-            return Percept(
-                radiactivity=environment.get_radioactivity(agent.pos),
-                waste1=last_percept.waste1,
-                waste2=last_percept.waste2,
-                pos=agent.pos,
-                other_on_pos=environment.others_on_pos(agent),
-            )
-    return Percept(
-        radiactivity=environment.get_radioactivity(agent.pos),
-        waste1=last_percept.waste1,
-        waste2=last_percept.waste2,
-        pos=agent.pos,
-        other_on_pos=environment.others_on_pos(agent),
-    )
+            return last_percept
+    return last_percept
 
 
 def drop(agent: CleaningAgent, environment: NuclearWasteModel):
@@ -144,17 +132,29 @@ def drop(agent: CleaningAgent, environment: NuclearWasteModel):
         )
     except Exception as e:
         print(e)
-        return Percept(
-            radiactivity=environment.get_radioactivity(agent.pos),
-            waste1=last_percept.waste1,
-            waste2=last_percept.waste2,
-            pos=agent.pos,
-            other_on_pos=environment.others_on_pos(agent),
-        )
+        return last_percept
 
 
 def merge(agent: CleaningAgent, environment: NuclearWasteModel):
-    pass
+    # Get the last percept of the agent
+    last_percept = agent.give_last_percept()
+    try:
+        new_waste = environment.merge_wastes(
+            last_percept.waste1.unique_id,
+            last_percept.waste2.unique_id,
+            agent.unique_id,
+        )
+        # Update the percept with the new waste
+        return Percept(
+            radiactivity=environment.get_radioactivity(agent.pos),
+            waste1=new_waste,
+            waste2=None,
+            pos=agent.pos,
+            other_on_pos=environment.others_on_pos(agent),
+        )
+    except Exception as e:
+        print(e)
+        return last_percept
 
 
 def get_action_handler(action: Action):
