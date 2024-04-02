@@ -32,17 +32,28 @@ class NuclearWasteModel(Model):
     The environment of the model.
     """
 
-    def __init__(self, N_AGENTS, N_WASTES, width, height):
+    def __init__(self, N_AGENTS=3, N_WASTES=3, width=10, height=10):
         super().__init__()
+
+        self.grid = MultiGrid(width, height, True)
         self.num_agents = N_AGENTS
         self.num_wastes = N_WASTES
-        self.grid = MultiGrid(width, height, True)
+        self.running = True
+
+        assert self.grid is not None, "Grid is not initialized."
+        assert self.num_agents > 0, "Invalid number of agents."
+        assert self.num_wastes >= 0, "Invalid number of wastes."
+
         self.picked_wastes_list: List[PickedWastes] = []
 
         # TODO : Move schedule to the schedule.py
         self.schedule = RandomActivation(self)
 
-        # TODO : Add datacollector
+        # Create the data collector
+        self.datacollector = DataCollector(
+            agent_reporters={"Knowledge": "knowledge"},
+            model_reporters={"PickedWastes": "picked_wastes_list"},
+        )
 
         # Start with the radioactivity agents and place them all over the grid by zone (3 zones)
         id = 0
@@ -106,12 +117,8 @@ class NuclearWasteModel(Model):
             self.grid.place_agent(a, (x, y))
 
     def step(self):
+        self.datacollector.collect(self)
         self.schedule.step()
-        # TODO : collect data
-
-    def perceive(self, agent):
-        pass
-        # TODO : implement the perceive method
 
     def do(self, agent, action):
         return handle_action(agent=agent, action=action, environment=self)
