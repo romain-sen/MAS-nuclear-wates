@@ -116,3 +116,77 @@ class NuclearWasteModel(Model):
         if cell_content:
             return cell_content[0].indicate_radioactivity()
         return 0
+
+    def get_who_picked_waste(self, waste_id: int) -> int | None:
+        """
+        Get the agent who picked the waste.
+        """
+        for waste in self.picked_wastes_list:
+            if waste["wasteId"] == waste_id:
+                return waste["agentId"]
+        return None
+
+    def give_waste_agent(self, waste_id: int, waste_color, agent_id: int):
+        """
+        Give the waste to the agent.
+        """
+        # Add the waste to the picked wastes list of the environment
+        self.picked_wastes_list.append(
+            {"agentId": agent_id, "wasteId": waste_id, "wasteColor": waste_color}
+        )
+        # Remove the waste from the grid
+        waste = self.grid.get_cell_list_contents([self.grid.coord_iter()])[waste_id]
+        self.grid.remove_agent(waste)
+
+    def drop_waste(self, waste_id: int, agent_id: int, pos: tuple[int, int]):
+        """
+        Drop the waste from the agent.
+        """
+        # Add the waste to the grid
+        waste = WasteAgent(
+            waste_id, self.picked_wastes_list[waste_id]["wasteColor"], self
+        )
+        self.grid.place_agent(waste, pos)
+        self.schedule.add(waste)
+        # Remove the waste of the picked wastes list of the environment
+        self.picked_wastes_list.remove(
+            {
+                "agentId": agent_id,
+                "wasteId": waste_id,
+                "wasteColor": self.picked_wastes_list[waste_id]["wasteColor"],
+            }
+        )
+
+    def merge_wastes(
+        self, waste_id1: int, waste_id2: int, agent_id: int
+    ) -> WasteAgent | None:
+        """
+        Merge the two wastes.
+        """
+        waste1 = self.picked_wastes_list[waste_id1]
+        waste2 = self.picked_wastes_list[waste_id2]
+        # Check if the two wastes are the same color, and the color is not red
+        if (
+            self.picked_wastes_list[waste_id1]["wasteColor"]
+            != self.picked_wastes_list[waste_id2]["wasteColor"]
+            and self.picked_wastes_list[waste_id1]["wasteColor"] != AgentColor.RED
+        ):
+            return None
+
+        if waste1["wasteColor"] == AgentColor.GREEN:
+            waste_color = AgentColor.YELLOW
+        else:
+            waste_color = AgentColor.RED
+
+        # Remove the two wastes from the picked wastes list of the environment
+        self.picked_wastes_list.remove(waste1)
+        self.picked_wastes_list.remove(waste2)
+
+        # Add the new waste to the picked wastes list of the environment, taking the first id
+        self.picked_wastes_list.append(
+            {
+                "agentId": agent_id,
+                "wasteId": waste_id1,
+                "wasteColor": waste_color,
+            }
+        )
