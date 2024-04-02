@@ -3,29 +3,6 @@ from mesa import Agent
 from action import Action
 from types_1 import AgentColor, Knowledge, Percept
 
-# knowledges_example: Knowledge = {
-#     "actions": [
-#         Action.STAY,
-#         Action.RIGHT,
-#     ],
-#     "percepts": [
-#         {
-#             "radiactivity": 0.11,
-#             "waste1": "green",
-#             "waste2": "empty",
-#             "pos": (1, 2),
-#             "other_on_pos": True,
-#         },
-#         {
-#             "radiactivity": 0.23,
-#             "waste1": "green",
-#             "waste2": "green",
-#             "pos": (2, 2),
-#             "other_on_pos": False,
-#         },
-#     ],
-# }
-
 
 def update(knowledge: Knowledge, percepts: Percept, actions: Action):
     if percepts:
