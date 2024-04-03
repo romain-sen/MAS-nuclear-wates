@@ -1,64 +1,46 @@
+from mesa.visualization.modules import CanvasGrid
+from mesa.visualization.ModularVisualization import ModularServer
+
 from model import NuclearWasteModel
-import mesa.visualization
+from object import WasteAgent, RadioactivityAgent
+from agent import RandomCleaningAgent
+from types_1 import AgentColor
 
-from types_1 import (
-    WasteAgent,
-    RadioactivityAgent,
-    RandomCleaningAgent,
-    AgentColor,
-    NuclearWasteModel,
-)
-
-
-# def agent_portrayal(agent):
-#     if agent is isinstance(agent, WasteAgent):
-#         portrayal = {
-#             "Shape": "circle",
-#             "Filled": "true",
-#             "Layer": 0,
-#             "Color": agent.indicate_color(),
-#             "r": 0.5,
-#         }
-#     elif agent is isinstance(agent, RadioactivityAgent):
-#         portrayal = {
-#             "Shape": "rect",
-#             "Filled": "true",
-#             "Layer": 0,
-#             "Color": "blue",
-#             "w": 1,
-#             "h": 1,
-#         }
-#     elif agent is isinstance(agent, RandomCleaningAgent):
-#         portrayal = {
-#             "Shape": "rect",
-#             "Filled": "true",
-#             "Layer": 0,
-#             "Color": agent.indicate_color(),
-#             "w": 1,
-#             "h": 1,
-#         }
-#     return portrayal
+# from types_1 import (
+#     WasteAgent,
+#     RadioactivityAgent,
+#     RandomCleaningAgent,
+#     AgentColor,
+# )
 
 
 def agent_portrayal(agent):
     portrayal = {
         "Shape": "circle",
         "Filled": "true",
-        "Layer": 0,
         "Color": "red",
+        "Layer": 0,
         "r": 0.5,
     }
+    if isinstance(agent, WasteAgent):
+        portrayal["Color"] = agent.indicate_color().__str__()
+        portrayal["r"] = 0.5
+    elif isinstance(agent, RadioactivityAgent):
+        portrayal["Color"] = "black"
+        portrayal["r"] = 0.8
+    elif isinstance(agent, RandomCleaningAgent):
+        portrayal["Color"] = agent.color.__str__()
+        portrayal["r"] = 0.3
+
     return portrayal
 
 
-width = 10
+width = 12
 height = 10
 n_agents = 3
 n_wastes = 3
-grid = mesa.visualization.CanvasGrid(
-    agent_portrayal, width, height, width * 10, height * 10
-)
-server = mesa.visualization.ModularServer(
+grid = CanvasGrid(agent_portrayal, width, height, 500, 500)
+server = ModularServer(
     NuclearWasteModel,
     [grid],
     "NuclearWasteModel",
