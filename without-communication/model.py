@@ -70,21 +70,21 @@ def init_agents(environment):
 
     # Add the cleaning agents
     for i in range(environment.num_agents):
-        color = random.choice(list(AgentColor))
-        if color == AgentColor.RED:
+        random_color = environment.random.choice(list(AgentColor))
+        if random_color == AgentColor.RED:
             x = environment.random.randrange(
                 2 * environment.grid.width // 3, environment.grid.width
             )
-        elif color == AgentColor.YELLOW:
+        elif random_color == AgentColor.YELLOW:
             x = environment.random.randrange(
                 environment.grid.width // 3, 2 * environment.grid.width // 3
             )
         else:
             x = environment.random.randrange(environment.grid.width // 3)
             y = environment.random.randrange(environment.grid.height)
-            a = RandomCleaningAgent(unique_id=i, color=color, model=environment)
-            environment.schedule.add(a)
-            environment.grid.place_agent(a, (x, y))
+        a = RandomCleaningAgent(unique_id=i, color=random_color, model=environment)
+        environment.schedule.add(a)
+        environment.grid.place_agent(a, (x, y))
 
 
 class NuclearWasteModel(Model):

@@ -26,7 +26,15 @@ def agent_portrayal(agent):
         portrayal["h"] = 0.9
         portrayal["Color"] = "gray"
     elif isinstance(agent, RandomCleaningAgent):
-        portrayal["Color"] = agent.color.__str__()
+        color_map = {
+            AgentColor.RED: "#E10B0B",
+            AgentColor.YELLOW: "#EFF700",
+            AgentColor.GREEN: "#1EA70B",
+        }
+        print("Agent color: ", agent.color)
+        portrayal["Filled"] = "true"
+        portrayal["Color"] = color_map[agent.color]
+        portrayal["Layer"] = 1
         portrayal["r"] = 0.3
 
     return portrayal
@@ -36,7 +44,7 @@ width = 12
 height = 10
 n_agents = 3
 n_wastes = 3
-grid = CanvasGrid(agent_portrayal, width, height, 500, 500)
+grid = CanvasGrid(agent_portrayal, width, height, width * 50, height * 50)
 server = ModularServer(
     NuclearWasteModel,
     [grid],
