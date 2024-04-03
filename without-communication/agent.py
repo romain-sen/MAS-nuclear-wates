@@ -31,6 +31,9 @@ class CleaningAgent(Agent):
     def give_last_percept(self):
         return self.percept_temp
 
+    def indicate_color(self):
+        return self.color
+
 
 class RandomCleaningAgent(CleaningAgent):
     def deliberate(self) -> Action:

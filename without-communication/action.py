@@ -21,7 +21,7 @@ def stays_in_area(pos, environment, color: AgentColor):
     """
 
     # Vertical boundaries are the same for all agents.
-    within_vertical_limits = 0 < pos[1] < environment.grid.height - 1
+    within_vertical_limits = 0 < pos[1] < environment.grid.height
 
     # Horizontal boundaries depend on the agent's color.
     right_boundaries = {
@@ -29,7 +29,7 @@ def stays_in_area(pos, environment, color: AgentColor):
         AgentColor.YELLOW: 2 * environment.grid.width // 3 - 1,
         AgentColor.RED: environment.grid.width - 1,
     }
-    within_horizontal_limits = 0 < pos[0] < right_boundaries[color]
+    within_horizontal_limits = 0 <= pos[0] < right_boundaries[color]
 
     return within_vertical_limits and within_horizontal_limits
 

@@ -2,6 +2,12 @@
 
 MAS (Multi Agent System) project : create different agents in a environnement to clear 3 areas with nuclear wastes.
 
+## Run the simulation
+
+Run the simulation and see the visualization :
+
+`python3 ./without-communication/visualization.py`
+
 ## Table of Contents
 
 1. [Project Introduction](#project-introduction)

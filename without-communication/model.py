@@ -27,91 +27,101 @@ def find_picked_waste_by_id(waste_id: int, picked_wastes_list: List[PickedWastes
     return None
 
 
+def initialize_zone(start_x, end_x, radioactivity_range, environment, current_id):
+    for i in range(start_x, end_x):
+        for j in range(environment.grid.height):
+            a = RadioactivityAgent(
+                current_id, random.uniform(*radioactivity_range), environment
+            )
+            environment.schedule.add(a)
+            environment.grid.place_agent(a, (i, j))
+            current_id += 1
+    return current_id
+
+
+def init_agents(environment):
+    id = 0
+    width_third = environment.grid.width // 3
+
+    # Zone 1 (West): radioactivity from 0 to 0.33
+    id = initialize_zone(0, width_third, (0, 0.33), environment, id)
+
+    # Zone 2 (Middle): radioactivity from 0.33 to 0.66
+    id = initialize_zone(width_third, 2 * width_third, (0.33, 0.66), environment, id)
+
+    # Zone 3 (East): radioactivity from 0.66 to 1
+    id = initialize_zone(
+        2 * width_third, environment.grid.width, (0.66, 1), environment, id
+    )
+
+    # Add the wastes
+    # TODO : change the probability of the wastes to be placed in the grid (more on the west)
+    for i in range(environment.num_wastes):
+        x = environment.random.randrange(environment.grid.width)
+        y = environment.random.randrange(environment.grid.height)
+        if x < environment.grid.width // 3:
+            a = WasteAgent(i, "green", environment)
+        elif x < 2 * environment.grid.width // 3:
+            a = WasteAgent(i, "yellow", environment)
+        else:
+            a = WasteAgent(i, "red", environment)
+        environment.schedule.add(a)
+        environment.grid.place_agent(a, (x, y))
+
+    # Add the cleaning agents
+    for i in range(environment.num_agents):
+        random_color = environment.random.choice(list(AgentColor))
+        if random_color == AgentColor.RED:
+            x = environment.random.randrange(
+                2 * environment.grid.width // 3, environment.grid.width
+            )
+        elif random_color == AgentColor.YELLOW:
+            x = environment.random.randrange(
+                environment.grid.width // 3, 2 * environment.grid.width // 3
+            )
+        else:
+            x = environment.random.randrange(environment.grid.width // 3)
+            y = environment.random.randrange(environment.grid.height)
+        a = RandomCleaningAgent(unique_id=i, color=random_color, model=environment)
+        environment.schedule.add(a)
+        environment.grid.place_agent(a, (x, y))
+
+
 class NuclearWasteModel(Model):
     """
     The environment of the model.
     """
 
-    def __init__(self, N_AGENTS, N_WASTES, width, height):
+    def __init__(self, N_AGENTS=3, N_WASTES=3, width=10, height=10):
+        print("NuclearWasteModel.__init__ ")
         super().__init__()
+        print("NuclearWasteModel.__init__ done")
+
+        self.grid = MultiGrid(width, height, True)
         self.num_agents = N_AGENTS
         self.num_wastes = N_WASTES
-        self.grid = MultiGrid(width, height, True)
+        self.running = True
+
+        assert self.grid is not None, "Grid is not initialized."
+        assert self.num_agents > 0, "Invalid number of agents."
+        assert self.num_wastes >= 0, "Invalid number of wastes."
+
         self.picked_wastes_list: List[PickedWastes] = []
 
         # TODO : Move schedule to the schedule.py
         self.schedule = RandomActivation(self)
 
-        # TODO : Add datacollector
+        # Create the data collector
+        self.datacollector = DataCollector(
+            agent_reporters={"Knowledge": "knowledge"},
+            model_reporters={"PickedWastes": "picked_wastes_list"},
+        )
 
-        # Start with the radioactivity agents and place them all over the grid by zone (3 zones)
-        id = 0
-        # Zone 1 (West): radiactivity from 0 to 0.33
-        for i in range(self.grid.width // 3):
-            a = RadioactivityAgent(id, random.uniform(0, 0.33), self)
-            self.schedule.add(a)
-            x = self.random.randrange(self.grid.width // 3)
-            y = self.random.randrange(self.grid.height)
-            self.grid.place_agent(a, (x, y))
-            id += 1
-
-        # Zone 2 (Middle): radiactivity from 0.33 to 0.66
-        for i in range(self.grid.width // 3, 2 * self.grid.width // 3):
-            a = RadioactivityAgent(i, random.uniform(0.33, 0.66), self)
-            self.schedule.add(a)
-            x = self.random.randrange(self.grid.width // 3, 2 * self.grid.width // 3)
-            y = self.random.randrange(self.grid.height)
-            self.grid.place_agent(a, (x, y))
-            id += 1
-
-        # Zone 3 (East): radiactivity from 0.66 to 1
-        for i in range(2 * self.grid.width // 3, self.grid.width):
-            a = RadioactivityAgent(i, random.uniform(0.66, 1), self)
-            self.schedule.add(a)
-            x = self.random.randrange(2 * self.grid.width // 3, self.grid.width)
-            y = self.random.randrange(self.grid.height)
-            self.grid.place_agent(a, (x, y))
-            id += 1
-
-        # Add the wastes
-        # TODO : change the probability of the wastes to be placed in the grid (more on the west)
-        id = 0
-        for i in range(self.num_wastes):
-            x = self.random.randrange(self.grid.width)
-            y = self.random.randrange(self.grid.height)
-            if x < self.grid.width // 3:
-                a = WasteAgent(id, "green", self)
-            elif x < 2 * self.grid.width // 3:
-                a = WasteAgent(id, "yellow", self)
-            else:
-                a = WasteAgent(id, "red", self)
-            self.schedule.add(a)
-            self.grid.place_agent(a, (x, y))
-            id += 1
-
-        # Add the cleaning agents
-        for i in range(self.num_agents):
-            color = random.choice(list(AgentColor))
-            if color == AgentColor.RED:
-                x = self.random.randrange(2 * self.grid.width // 3, self.grid.width)
-            elif color == AgentColor.YELLOW:
-                x = self.random.randrange(
-                    self.grid.width // 3, 2 * self.grid.width // 3
-                )
-            else:
-                x = self.random.randrange(self.grid.width // 3)
-            y = self.random.randrange(self.grid.height)
-            a = RandomCleaningAgent(unique_id=i, color=color, model=self)
-            self.schedule.add(a)
-            self.grid.place_agent(a, (x, y))
+        init_agents(self)
 
     def step(self):
+        self.datacollector.collect(self)
         self.schedule.step()
-        # TODO : collect data
-
-    def perceive(self, agent):
-        pass
-        # TODO : implement the perceive method
 
     def do(self, agent, action):
         return handle_action(agent=agent, action=action, environment=self)
