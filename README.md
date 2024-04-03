@@ -8,6 +8,11 @@ Run the simulation and see the visualization :
 
 `python3 ./without-communication/visualization.py`
 
+## TODO
+
+- Refactor percepts to have a list of wastes instead of waste1, waste2
+- Change method to pick waste so the agent can chose which waste to pick (instead of always the first)
+
 ## Table of Contents
 
 1. [Project Introduction](#project-introduction)
