@@ -6,13 +6,6 @@ from object import WasteAgent, RadioactivityAgent
 from agent import RandomCleaningAgent
 from types_1 import AgentColor
 
-# from types_1 import (
-#     WasteAgent,
-#     RadioactivityAgent,
-#     RandomCleaningAgent,
-#     AgentColor,
-# )
-
 
 def agent_portrayal(agent):
     portrayal = {
@@ -23,11 +16,15 @@ def agent_portrayal(agent):
         "r": 0.5,
     }
     if isinstance(agent, WasteAgent):
+        portrayal["Shape"] = "rect"
+        portrayal["w"] = 0.5
+        portrayal["h"] = 0.5
         portrayal["Color"] = agent.indicate_color().__str__()
-        portrayal["r"] = 0.5
     elif isinstance(agent, RadioactivityAgent):
-        portrayal["Color"] = "black"
-        portrayal["r"] = 0.8
+        portrayal["Shape"] = "rect"
+        portrayal["w"] = 0.9
+        portrayal["h"] = 0.9
+        portrayal["Color"] = "gray"
     elif isinstance(agent, RandomCleaningAgent):
         portrayal["Color"] = agent.color.__str__()
         portrayal["r"] = 0.3

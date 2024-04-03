@@ -27,55 +27,46 @@ def find_picked_waste_by_id(waste_id: int, picked_wastes_list: List[PickedWastes
     return None
 
 
+def initialize_zone(start_x, end_x, radioactivity_range, environment, current_id):
+    for i in range(start_x, end_x):
+        for j in range(environment.grid.height):
+            a = RadioactivityAgent(
+                current_id, random.uniform(*radioactivity_range), environment
+            )
+            environment.schedule.add(a)
+            environment.grid.place_agent(a, (i, j))
+            current_id += 1
+    return current_id
+
+
 def init_agents(environment):
-    # Start with the radioactivity agents and place them all over the grid by zone (3 zones)
     id = 0
-    # Zone 1 (West): radiactivity from 0 to 0.33
-    for i in range(environment.grid.width // 3):
-        a = RadioactivityAgent(id, random.uniform(0, 0.33), environment)
-        environment.schedule.add(a)
-        x = environment.random.randrange(environment.grid.width // 3)
-        y = environment.random.randrange(environment.grid.height)
-        environment.grid.place_agent(a, (x, y))
-        id += 1
+    width_third = environment.grid.width // 3
 
-    # Zone 2 (Middle): radiactivity from 0.33 to 0.66
-    for i in range(environment.grid.width // 3, 2 * environment.grid.width // 3):
-        a = RadioactivityAgent(i, random.uniform(0.33, 0.66), environment)
-        environment.schedule.add(a)
-        x = environment.random.randrange(
-            environment.grid.width // 3, 2 * environment.grid.width // 3
-        )
-        y = environment.random.randrange(environment.grid.height)
-        environment.grid.place_agent(a, (x, y))
-        id += 1
+    # Zone 1 (West): radioactivity from 0 to 0.33
+    id = initialize_zone(0, width_third, (0, 0.33), environment, id)
 
-    # Zone 3 (East): radiactivity from 0.66 to 1
-    for i in range(2 * environment.grid.width // 3, environment.grid.width):
-        a = RadioactivityAgent(i, random.uniform(0.66, 1), environment)
-        environment.schedule.add(a)
-        x = environment.random.randrange(
-            2 * environment.grid.width // 3, environment.grid.width
-        )
-        y = environment.random.randrange(environment.grid.height)
-        environment.grid.place_agent(a, (x, y))
-        id += 1
+    # Zone 2 (Middle): radioactivity from 0.33 to 0.66
+    id = initialize_zone(width_third, 2 * width_third, (0.33, 0.66), environment, id)
+
+    # Zone 3 (East): radioactivity from 0.66 to 1
+    id = initialize_zone(
+        2 * width_third, environment.grid.width, (0.66, 1), environment, id
+    )
 
     # Add the wastes
     # TODO : change the probability of the wastes to be placed in the grid (more on the west)
-    id = 0
     for i in range(environment.num_wastes):
         x = environment.random.randrange(environment.grid.width)
         y = environment.random.randrange(environment.grid.height)
         if x < environment.grid.width // 3:
-            a = WasteAgent(id, "green", environment)
+            a = WasteAgent(i, "green", environment)
         elif x < 2 * environment.grid.width // 3:
-            a = WasteAgent(id, "yellow", environment)
+            a = WasteAgent(i, "yellow", environment)
         else:
-            a = WasteAgent(id, "red", environment)
+            a = WasteAgent(i, "red", environment)
         environment.schedule.add(a)
         environment.grid.place_agent(a, (x, y))
-        id += 1
 
     # Add the cleaning agents
     for i in range(environment.num_agents):
