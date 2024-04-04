@@ -7,10 +7,16 @@ from mesa.datacollection import DataCollector
 
 from object import RadioactivityAgent, WasteAgent
 from action import handle_action
-from agent import RandomCleaningAgent, CleaningAgent
+from agent import DefaultAgent, CleaningAgent
 
 from types_1 import AgentColor, PickedWastes
 from typing import List
+
+# Logger configuration
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def find_picked_waste_by_id(waste_id: int, picked_wastes_list: List[PickedWastes]):
@@ -60,13 +66,14 @@ def init_agents(environment):
         x = environment.random.randrange(environment.grid.width)
         y = environment.random.randrange(environment.grid.height)
         if x < environment.grid.width // 3:
-            a = WasteAgent(i, "green", environment)
+            a = WasteAgent(id, "green", environment)
         elif x < 2 * environment.grid.width // 3:
-            a = WasteAgent(i, "yellow", environment)
+            a = WasteAgent(id, "yellow", environment)
         else:
-            a = WasteAgent(i, "red", environment)
+            a = WasteAgent(id, "red", environment)
         environment.schedule.add(a)
         environment.grid.place_agent(a, (x, y))
+        id += 1
 
     # Add the cleaning agents
     for i in range(environment.num_agents):
@@ -82,9 +89,10 @@ def init_agents(environment):
         else:
             x = environment.random.randrange(environment.grid.width // 3)
             y = environment.random.randrange(environment.grid.height)
-        a = RandomCleaningAgent(unique_id=i, color=random_color, model=environment)
+        a = DefaultAgent(unique_id=id, color=random_color, model=environment)
         environment.schedule.add(a)
         environment.grid.place_agent(a, (x, y))
+        id += 1
 
 
 class NuclearWasteModel(Model):
@@ -93,14 +101,13 @@ class NuclearWasteModel(Model):
     """
 
     def __init__(self, N_AGENTS=3, N_WASTES=3, width=10, height=10):
-        print("NuclearWasteModel.__init__ ")
         super().__init__()
-        print("NuclearWasteModel.__init__ done")
 
         self.grid = MultiGrid(width, height, True)
         self.num_agents = N_AGENTS
         self.num_wastes = N_WASTES
         self.running = True
+        self.height = height
 
         assert self.grid is not None, "Grid is not initialized."
         assert self.num_agents > 0, "Invalid number of agents."
@@ -126,22 +133,41 @@ class NuclearWasteModel(Model):
     def do(self, agent, action):
         return handle_action(agent=agent, action=action, environment=self)
 
+    def get_agent_pos(self, agent_id: int):
+        """
+        Get the position of the agent.
+        """
+        # filter on the unique_id
+        agent = [obj for obj in self.schedule.agents if obj.unique_id == agent_id]
+        return agent[0].pos
+
     def others_on_pos(self, agent: CleaningAgent):
         """
         Check if there are other agents on the same position as the given agent.
         """
         return len(self.grid.get_cell_list_contents([agent.pos])) > 1
 
+    def is_on_waste(self, pos):
+        """
+        If there is a waste at this pos, return the waste's color.
+        Else return None.
+        """
+        cell_content = self.grid.get_cell_list_contents([pos])
+        waste_agents = [obj for obj in cell_content if isinstance(obj, WasteAgent)]
+        if waste_agents != []:
+            return waste_agents[0].indicate_color()
+        return None
+
     def get_radioactivity(self, pos):
         """
         Get the radioactivity at the given position.
         """
         cell_content = self.grid.get_cell_list_contents([pos])
-        waste_agents = [
+        radioactivity = [
             obj for obj in cell_content if isinstance(obj, RadioactivityAgent)
         ]
-        if waste_agents != []:
-            return waste_agents[0].indicate_radioactivity()
+        if radioactivity != []:
+            return radioactivity[0].indicate_radioactivity()
         return 0
 
     def get_who_picked_waste(self, waste_id: int) -> int:
@@ -154,7 +180,9 @@ class NuclearWasteModel(Model):
             return -1
         return picked_waste.agentId
 
-    def give_waste_agent(self, waste_id: int, waste_color, agent_id: int):
+    def give_waste_agent(
+        self, waste_id: int, waste_color, agent_id: int, pos: tuple[int, int]
+    ):
         """
         Give the waste to the agent.
         """
@@ -179,9 +207,15 @@ class NuclearWasteModel(Model):
         self.picked_wastes_list.append(
             PickedWastes(agentId=agent_id, wasteId=waste_id, wasteColor=waste_color)
         )
-        # Remove the waste from the grid
-        waste = self.grid.get_cell_list_contents([self.grid.coord_iter()])[waste_id]
+        # Get all the agents on the position
+        waste = self.grid.get_cell_list_contents([pos])
+        if waste == []:
+            raise Exception("Error while removing picked waste from the grid.")
+        # Filter to get the waste agent and remove it
+        waste = [obj for obj in waste if isinstance(obj, WasteAgent)]
+        waste = waste[0]
         self.grid.remove_agent(waste)
+        self.schedule.remove(waste)
 
     def drop_waste(self, waste_id: int, agent_id: int, pos: tuple[int, int]):
         """
