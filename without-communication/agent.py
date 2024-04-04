@@ -63,12 +63,23 @@ class DefaultAgent(CleaningAgent):
             # TODO : Check if the agent is on top without using the height of the grid
             action = Action.TAKE
 
+        if last_percept["waste1"] is not None and last_percept["waste2"] is not None:
+            if (
+                last_percept["waste1"].indicate_color()
+                == last_percept["waste2"].indicate_color()
+            ):
+                action = Action.MERGE
+
         # If the agent has a waste, go up to drop it on the top row
-        if last_percept["waste1"] is not None:
+        if last_percept["waste1"] is not None and action != Action.MERGE:
             if len(self.knowledge["percepts"]) > 1:
                 # Try to go up first
                 if self.action_temp != Action.UP:
-                    action = Action.UP
+
+                    if self.action_temp == Action.MERGE:
+                        action = Action.DROP
+                    else:
+                        action = Action.UP
                 else:
                     last_two_percepts = self.knowledge["percepts"][-2:]
                     # If can still go up, go up
@@ -78,7 +89,21 @@ class DefaultAgent(CleaningAgent):
                     ):
                         action = Action.UP
                     else:
-                        action = Action.DROP
+                        # If can't go up, drop.
+                        # But before dropping, check if there already is a waste on the cell.
+                        if last_percept["waste_on_pos"] is None:
+                            action = Action.DROP
+                        else:
+                            # if there is a waste, and the wastes are the same color, pick and merge them
+                            if (
+                                last_percept["waste1"].indicate_color()
+                                == last_percept["waste_on_pos"]
+                            ):
+                                action = Action.TAKE
+                            else:
+                                # Otherwise, go somewhere else to drop it
+                                movables = [Action.LEFT, Action.RIGHT]
+                                action = movables[self.random.randrange(4)]
             elif len(self.knowledge["percepts"]) == 1:
                 action = Action.UP
 

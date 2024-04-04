@@ -138,7 +138,7 @@ def drop(agent: CleaningAgent, environment: NuclearWasteModel):
         # TODO: Drop the first waste of the list
         waste_id = last_percept["waste1"].unique_id
         environment.drop_waste(waste_id, agent.pos)
-        return Percept(
+        percept = Percept(
             radiactivity=environment.get_radioactivity(agent.pos),
             waste1=None,
             waste2=last_percept["waste2"],
@@ -146,6 +146,7 @@ def drop(agent: CleaningAgent, environment: NuclearWasteModel):
             other_on_pos=environment.others_on_pos(agent),
             waste_on_pos=environment.is_on_waste(agent.pos),
         )
+        return percept
     except Exception as e:
         print(e)
         return last_percept
@@ -155,6 +156,7 @@ def merge(agent: CleaningAgent, environment: NuclearWasteModel):
     # Get the last percept of the agent
     last_percept = agent.give_last_percept()
     try:
+
         new_waste = environment.merge_wastes(
             last_percept["waste1"].unique_id,
             last_percept["waste2"].unique_id,

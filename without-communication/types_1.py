@@ -52,6 +52,9 @@ class WasteAgent(Agent):
 
     def indicate_color(self) -> AgentColor: ...
 
+    def __str__(self) -> str:
+        return f"WasteAgent(id={self.unique_id}, color={self.color}, pos={self.pos})"
+
 
 class Percept(TypedDict):
     radiactivity: float
@@ -61,8 +64,12 @@ class Percept(TypedDict):
     other_on_pos: bool
     waste_on_pos: AgentColor
 
+    # def __str__(self) -> str:
+    #     return f"Percept(radiactivity={self['radiactivity']}, waste1={self['waste1'].__str__()}, waste2={self['waste2'].__str__()}, pos={self['pos']}, other_on_pos={self['other_on_pos']}, waste_on_pos={self['waste_on_pos']})"
     def __str__(self) -> str:
-        return f"Percept(radiactivity={self['radiactivity']}, waste1={self['waste1'].__str__()}, waste2={self['waste2'].__str__()}, pos={self['pos']}, other_on_pos={self['other_on_pos']}, waste_on_pos={self['waste_on_pos']})"
+        waste1_str = self["waste1"].__str__() if self["waste1"] else "None"
+        waste2_str = self["waste2"].__str__() if self["waste2"] else "None"
+        return f"Percept(radiactivity={self['radiactivity']}, waste1={waste1_str}, waste2={waste2_str}, pos={self['pos']}, other_on_pos={self['other_on_pos']}, waste_on_pos={self['waste_on_pos']})"
 
 
 class Knowledge(TypedDict):
