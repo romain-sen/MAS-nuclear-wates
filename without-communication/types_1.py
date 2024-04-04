@@ -52,6 +52,9 @@ class WasteAgent(Agent):
 
     def indicate_color(self) -> AgentColor: ...
 
+    def __str__(self) -> str:
+        return f"WasteAgent(id={self.unique_id}, color={self.color}, pos={self.pos})"
+
 
 class Percept(TypedDict):
     radiactivity: float
@@ -59,6 +62,14 @@ class Percept(TypedDict):
     waste2: WasteAgent
     pos: Tuple[int, int]
     other_on_pos: bool
+    waste_on_pos: AgentColor
+
+    # def __str__(self) -> str:
+    #     return f"Percept(radiactivity={self['radiactivity']}, waste1={self['waste1'].__str__()}, waste2={self['waste2'].__str__()}, pos={self['pos']}, other_on_pos={self['other_on_pos']}, waste_on_pos={self['waste_on_pos']})"
+    def __str__(self) -> str:
+        waste1_str = self["waste1"].__str__() if self["waste1"] else "None"
+        waste2_str = self["waste2"].__str__() if self["waste2"] else "None"
+        return f"Percept(radiactivity={self['radiactivity']}, waste1={waste1_str}, waste2={waste2_str}, pos={self['pos']}, other_on_pos={self['other_on_pos']}, waste_on_pos={self['waste_on_pos']})"
 
 
 class Knowledge(TypedDict):
@@ -71,6 +82,9 @@ class PickedWastes:
         self.agentId = agentId
         self.wasteId = wasteId
         self.wasteColor = wasteColor
+
+    def __str__(self) -> str:
+        return f"PickedWastes(agentId={self.agentId}, wasteId={self.wasteId}, wasteColor={self.wasteColor})"
 
 
 def find_picked_waste_by_id(
@@ -104,9 +118,11 @@ class NuclearWasteModel(Model):
 
     def perceive(self, agent): ...
 
-    def do(self, agent, action): ...
+    def do(self, agent, action) -> Percept: ...
 
-    def others_on_pos(self, agent: CleaningAgent): ...
+    def is_on_waste(self, pos) -> AgentColor: ...
+
+    def others_on_pos(self, agent: CleaningAgent) -> bool: ...
 
     def get_radioactivity(self, pos): ...
 
@@ -117,5 +133,5 @@ class NuclearWasteModel(Model):
     def drop_waste(self, waste_id: int, agent_id: int, pos: tuple[int, int]): ...
 
     def merge_wastes(
-        self, waste_id1: int, waste_id2: int, agent_id: int
+        self, waste_id1: int, waste_id2: int, agent_id: int, pos: tuple[int, int]
     ) -> WasteAgent: ...

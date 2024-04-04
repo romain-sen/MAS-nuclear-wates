@@ -7,10 +7,16 @@ from mesa.datacollection import DataCollector
 
 from object import RadioactivityAgent, WasteAgent
 from action import handle_action
-from agent import RandomCleaningAgent, CleaningAgent
+from agent import DefaultAgent, CleaningAgent
 
 from types_1 import AgentColor, PickedWastes
 from typing import List
+
+# Logger configuration
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def find_picked_waste_by_id(waste_id: int, picked_wastes_list: List[PickedWastes]):
@@ -40,18 +46,25 @@ def initialize_zone(start_x, end_x, radioactivity_range, environment, current_id
 
 
 def init_agents(environment):
-    id = 0
     width_third = environment.grid.width // 3
 
     # Zone 1 (West): radioactivity from 0 to 0.33
-    id = initialize_zone(0, width_third, (0, 0.33), environment, id)
+    environment.obj_id = initialize_zone(
+        0, width_third, (0, 0.33), environment, environment.obj_id
+    )
 
     # Zone 2 (Middle): radioactivity from 0.33 to 0.66
-    id = initialize_zone(width_third, 2 * width_third, (0.33, 0.66), environment, id)
+    environment.obj_id = initialize_zone(
+        width_third, 2 * width_third, (0.33, 0.66), environment, environment.obj_id
+    )
 
     # Zone 3 (East): radioactivity from 0.66 to 1
-    id = initialize_zone(
-        2 * width_third, environment.grid.width, (0.66, 1), environment, id
+    environment.obj_id = initialize_zone(
+        2 * width_third,
+        environment.grid.width,
+        (0.66, 1),
+        environment,
+        environment.obj_id,
     )
 
     # Add the wastes
@@ -60,13 +73,14 @@ def init_agents(environment):
         x = environment.random.randrange(environment.grid.width)
         y = environment.random.randrange(environment.grid.height)
         if x < environment.grid.width // 3:
-            a = WasteAgent(i, "green", environment)
+            a = WasteAgent(environment.obj_id, "green", environment)
         elif x < 2 * environment.grid.width // 3:
-            a = WasteAgent(i, "yellow", environment)
+            a = WasteAgent(environment.obj_id, "yellow", environment)
         else:
-            a = WasteAgent(i, "red", environment)
+            a = WasteAgent(environment.obj_id, "red", environment)
         environment.schedule.add(a)
         environment.grid.place_agent(a, (x, y))
+        environment.obj_id += 1
 
     # Add the cleaning agents
     for i in range(environment.num_agents):
@@ -82,9 +96,12 @@ def init_agents(environment):
         else:
             x = environment.random.randrange(environment.grid.width // 3)
             y = environment.random.randrange(environment.grid.height)
-        a = RandomCleaningAgent(unique_id=i, color=random_color, model=environment)
+        a = DefaultAgent(
+            unique_id=environment.obj_id, color=random_color, model=environment
+        )
         environment.schedule.add(a)
         environment.grid.place_agent(a, (x, y))
+        environment.obj_id += 1
 
 
 class NuclearWasteModel(Model):
@@ -93,14 +110,14 @@ class NuclearWasteModel(Model):
     """
 
     def __init__(self, N_AGENTS=3, N_WASTES=3, width=10, height=10):
-        print("NuclearWasteModel.__init__ ")
         super().__init__()
-        print("NuclearWasteModel.__init__ done")
 
         self.grid = MultiGrid(width, height, True)
         self.num_agents = N_AGENTS
         self.num_wastes = N_WASTES
         self.running = True
+        self.height = height
+        self.obj_id = 0
 
         assert self.grid is not None, "Grid is not initialized."
         assert self.num_agents > 0, "Invalid number of agents."
@@ -126,22 +143,41 @@ class NuclearWasteModel(Model):
     def do(self, agent, action):
         return handle_action(agent=agent, action=action, environment=self)
 
+    def get_agent_pos(self, agent_id: int):
+        """
+        Get the position of the agent.
+        """
+        # filter on the unique_id
+        agent = [obj for obj in self.schedule.agents if obj.unique_id == agent_id]
+        return agent[0].pos
+
     def others_on_pos(self, agent: CleaningAgent):
         """
         Check if there are other agents on the same position as the given agent.
         """
         return len(self.grid.get_cell_list_contents([agent.pos])) > 1
 
+    def is_on_waste(self, pos):
+        """
+        If there is a waste at this pos, return the waste's color.
+        Else return None.
+        """
+        cell_content = self.grid.get_cell_list_contents([pos])
+        waste_agents = [obj for obj in cell_content if isinstance(obj, WasteAgent)]
+        if waste_agents != []:
+            return waste_agents[0].indicate_color()
+        return None
+
     def get_radioactivity(self, pos):
         """
         Get the radioactivity at the given position.
         """
         cell_content = self.grid.get_cell_list_contents([pos])
-        waste_agents = [
+        radioactivity = [
             obj for obj in cell_content if isinstance(obj, RadioactivityAgent)
         ]
-        if waste_agents != []:
-            return waste_agents[0].indicate_radioactivity()
+        if radioactivity != []:
+            return radioactivity[0].indicate_radioactivity()
         return 0
 
     def get_who_picked_waste(self, waste_id: int) -> int:
@@ -154,7 +190,9 @@ class NuclearWasteModel(Model):
             return -1
         return picked_waste.agentId
 
-    def give_waste_agent(self, waste_id: int, waste_color, agent_id: int):
+    def give_waste_agent(
+        self, waste_id: int, waste_color, agent_id: int, pos: tuple[int, int]
+    ):
         """
         Give the waste to the agent.
         """
@@ -179,11 +217,17 @@ class NuclearWasteModel(Model):
         self.picked_wastes_list.append(
             PickedWastes(agentId=agent_id, wasteId=waste_id, wasteColor=waste_color)
         )
-        # Remove the waste from the grid
-        waste = self.grid.get_cell_list_contents([self.grid.coord_iter()])[waste_id]
+        # Get all the agents on the position
+        waste = self.grid.get_cell_list_contents([pos])
+        if waste == []:
+            raise Exception("Error while removing picked waste from the grid.")
+        # Filter to get the waste agent and remove it
+        waste = [obj for obj in waste if isinstance(obj, WasteAgent)]
+        waste = waste[0]
         self.grid.remove_agent(waste)
+        self.schedule.remove(waste)
 
-    def drop_waste(self, waste_id: int, agent_id: int, pos: tuple[int, int]):
+    def drop_waste(self, waste_id: int, pos: tuple[int, int]):
         """
         Drop the waste from the agent.
         """
@@ -198,7 +242,9 @@ class NuclearWasteModel(Model):
         # Remove the waste of the picked wastes list of the environment
         self.picked_wastes_list.remove(waste)
 
-    def merge_wastes(self, waste_id1: int, waste_id2: int, agent_id: int) -> WasteAgent:
+    def merge_wastes(
+        self, waste_id1: int, waste_id2: int, agent_id: int, pos: tuple[int, int]
+    ) -> WasteAgent:
         """
         Merge the two wastes into a new one and return it.
         If the two wastes are of different colors or one of them is red, raise an exception.
@@ -209,14 +255,14 @@ class NuclearWasteModel(Model):
         waste2 = find_picked_waste_by_id(waste_id2, self.picked_wastes_list)
         # Check if the two wastes are the same color, and the color is not red
         if (
-            waste1["wasteColor"] != waste2["wasteColor"]
-            or waste1["wasteColor"] == AgentColor.RED
+            waste1.wasteColor != waste2.wasteColor
+            or waste1.wasteColor == AgentColor.RED
         ):
             raise Exception(
                 "Cannot merge wastes of different colors or with red waste."
             )
 
-        if waste1["wasteColor"] == AgentColor.GREEN:
+        if waste1.wasteColor == AgentColor.GREEN:
             waste_color = AgentColor.YELLOW
         else:
             waste_color = AgentColor.RED
@@ -225,8 +271,13 @@ class NuclearWasteModel(Model):
         self.picked_wastes_list.remove(waste1)
         self.picked_wastes_list.remove(waste2)
 
-        # Add the new waste to the picked wastes list of the environment, taking the first id
-        self.picked_wastes_list.append(
-            PickedWastes(agentId=agent_id, wasteId=waste_id1, wasteColor=waste_color)
+        new_id = self.obj_id + 1
+        self.obj_id = new_id
+        waste_merged = PickedWastes(
+            agentId=new_id, wasteId=agent_id, wasteColor=waste_color
         )
-        return WasteAgent(waste_id1, waste_color, self)
+        self.picked_wastes_list.append(waste_merged)
+
+        new_waste = WasteAgent(new_id, waste_color, self)
+        # self.grid.place_agent(new_waste, self.get_agent_pos(agent_id))
+        return new_waste

@@ -13,6 +13,9 @@ class RadioactivityAgent(Agent):
     def indicate_radioactivity(self):
         return self.radioactivity
 
+    def __str__(self) -> str:
+        return f"RadioactivityAgent(id={self.unique_id}, radioactivity={self.radioactivity}, pos={self.pos})"
+
 
 class WasteAgent(Agent):
     def __init__(self, unique_id: int, color: AgentColor, model: NuclearWasteModel):
@@ -24,3 +27,6 @@ class WasteAgent(Agent):
 
     def indicate_color(self):
         return self.color
+
+    def __str__(self):
+        return f"WasteAgent(id={self.unique_id}, color={self.color}, pos={self.pos})"

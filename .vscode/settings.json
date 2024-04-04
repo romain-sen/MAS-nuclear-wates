@@ -1,11 +1,9 @@
 {
   "conventionalCommits.scopes": [
-    "nocom",
     "objects",
     "model",
     "action",
     "agent",
-    "action",
     "run",
     "types",
     "visualization"
