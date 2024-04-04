@@ -31,7 +31,6 @@ def agent_portrayal(agent):
             AgentColor.YELLOW: "#EFF700",
             AgentColor.GREEN: "#1EA70B",
         }
-        print("Agent color: ", agent.color)
         portrayal["Filled"] = "true"
         portrayal["Color"] = color_map[agent.color]
         portrayal["Layer"] = 1

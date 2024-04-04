@@ -25,9 +25,9 @@ def stays_in_area(pos, environment, color: AgentColor):
 
     # Horizontal boundaries depend on the agent's color.
     right_boundaries = {
-        AgentColor.GREEN: environment.grid.width // 3 - 1,
-        AgentColor.YELLOW: 2 * environment.grid.width // 3 - 1,
-        AgentColor.RED: environment.grid.width - 1,
+        AgentColor.GREEN: environment.grid.width // 3,
+        AgentColor.YELLOW: 2 * environment.grid.width // 3,
+        AgentColor.RED: environment.grid.width,
     }
     within_horizontal_limits = 0 <= pos[0] < right_boundaries[color]
 
@@ -124,10 +124,6 @@ def take(agent: CleaningAgent, environment: NuclearWasteModel):
                     other_on_pos=environment.others_on_pos(agent),
                     waste_on_pos=environment.is_on_waste(agent.pos),
                 )
-            print(
-                "Agent {} took waste {}".format(agent.unique_id, waste_agent.unique_id)
-            )
-            print("Percept: ", percept)
             return percept
         except Exception as e:
             print("Exception while taking waste : " + str(e))
@@ -141,7 +137,7 @@ def drop(agent: CleaningAgent, environment: NuclearWasteModel):
     try:
         # TODO: Drop the first waste of the list
         waste_id = last_percept["waste1"].unique_id
-        environment.drop_waste(waste_id, agent.unique_id, agent.pos)
+        environment.drop_waste(waste_id, agent.pos)
         return Percept(
             radiactivity=environment.get_radioactivity(agent.pos),
             waste1=None,
@@ -160,9 +156,10 @@ def merge(agent: CleaningAgent, environment: NuclearWasteModel):
     last_percept = agent.give_last_percept()
     try:
         new_waste = environment.merge_wastes(
-            last_percept.waste1.unique_id,
-            last_percept.waste2.unique_id,
+            last_percept["waste1"].unique_id,
+            last_percept["waste2"].unique_id,
             agent.unique_id,
+            pos=agent.pos,
         )
         # Update the percept with the new waste
         return Percept(

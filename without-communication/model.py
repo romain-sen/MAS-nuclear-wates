@@ -217,7 +217,7 @@ class NuclearWasteModel(Model):
         self.grid.remove_agent(waste)
         self.schedule.remove(waste)
 
-    def drop_waste(self, waste_id: int, agent_id: int, pos: tuple[int, int]):
+    def drop_waste(self, waste_id: int, pos: tuple[int, int]):
         """
         Drop the waste from the agent.
         """
@@ -232,7 +232,9 @@ class NuclearWasteModel(Model):
         # Remove the waste of the picked wastes list of the environment
         self.picked_wastes_list.remove(waste)
 
-    def merge_wastes(self, waste_id1: int, waste_id2: int, agent_id: int) -> WasteAgent:
+    def merge_wastes(
+        self, waste_id1: int, waste_id2: int, agent_id: int, pos: tuple[int, int]
+    ) -> WasteAgent:
         """
         Merge the two wastes into a new one and return it.
         If the two wastes are of different colors or one of them is red, raise an exception.
@@ -243,14 +245,14 @@ class NuclearWasteModel(Model):
         waste2 = find_picked_waste_by_id(waste_id2, self.picked_wastes_list)
         # Check if the two wastes are the same color, and the color is not red
         if (
-            waste1["wasteColor"] != waste2["wasteColor"]
-            or waste1["wasteColor"] == AgentColor.RED
+            waste1.wasteColor != waste2.wasteColor
+            or waste1.wasteColor == AgentColor.RED
         ):
             raise Exception(
                 "Cannot merge wastes of different colors or with red waste."
             )
 
-        if waste1["wasteColor"] == AgentColor.GREEN:
+        if waste1.wasteColor == AgentColor.GREEN:
             waste_color = AgentColor.YELLOW
         else:
             waste_color = AgentColor.RED
@@ -259,8 +261,10 @@ class NuclearWasteModel(Model):
         self.picked_wastes_list.remove(waste1)
         self.picked_wastes_list.remove(waste2)
 
-        # Add the new waste to the picked wastes list of the environment, taking the first id
-        self.picked_wastes_list.append(
-            PickedWastes(agentId=agent_id, wasteId=waste_id1, wasteColor=waste_color)
-        )
-        return WasteAgent(waste_id1, waste_color, self)
+        waste1.wasteColor = waste_color
+        waste1.agentId = agent_id
+        self.picked_wastes_list.append(waste1)
+
+        new_waste = WasteAgent(waste_id1, waste_color, self)
+        # self.grid.place_agent(new_waste, self.get_agent_pos(agent_id))
+        return new_waste

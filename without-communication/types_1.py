@@ -61,6 +61,9 @@ class Percept(TypedDict):
     other_on_pos: bool
     waste_on_pos: AgentColor
 
+    def __str__(self) -> str:
+        return f"Percept(radiactivity={self['radiactivity']}, waste1={self['waste1'].__str__()}, waste2={self['waste2'].__str__()}, pos={self['pos']}, other_on_pos={self['other_on_pos']}, waste_on_pos={self['waste_on_pos']})"
+
 
 class Knowledge(TypedDict):
     actions: List[Action]
@@ -72,6 +75,9 @@ class PickedWastes:
         self.agentId = agentId
         self.wasteId = wasteId
         self.wasteColor = wasteColor
+
+    def __str__(self) -> str:
+        return f"PickedWastes(agentId={self.agentId}, wasteId={self.wasteId}, wasteColor={self.wasteColor})"
 
 
 def find_picked_waste_by_id(
@@ -120,5 +126,5 @@ class NuclearWasteModel(Model):
     def drop_waste(self, waste_id: int, agent_id: int, pos: tuple[int, int]): ...
 
     def merge_wastes(
-        self, waste_id1: int, waste_id2: int, agent_id: int
+        self, waste_id1: int, waste_id2: int, agent_id: int, pos: tuple[int, int]
     ) -> WasteAgent: ...
