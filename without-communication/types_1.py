@@ -2,6 +2,9 @@ import enum
 from typing import Dict, List, TypedDict, Tuple, Optional
 from mesa import Agent, Model
 
+# The radioactivity of the deposit zone.
+DEPOSIT_RADIOACTIVITY = -100
+
 
 class AgentColor(enum.Enum):
     RED = 0

@@ -9,7 +9,7 @@ from object import RadioactivityAgent, WasteAgent
 from action import handle_action
 from agent import DefaultAgent, CleaningAgent
 
-from types_1 import AgentColor, PickedWastes
+from types_1 import AgentColor, PickedWastes, DEPOSIT_RADIOACTIVITY
 from typing import List
 
 
@@ -30,9 +30,13 @@ def find_picked_waste_by_id(waste_id: int, picked_wastes_list: List[PickedWastes
 def initialize_zone(start_x, end_x, radioactivity_range, environment, current_id):
     for i in range(start_x, end_x):
         for j in range(environment.grid.height):
-            a = RadioactivityAgent(
-                current_id, random.uniform(*radioactivity_range), environment
-            )
+            # Put deposit zone on the top right corner
+            if i == environment.grid.width - 1 and j == environment.grid.height - 1:
+                a = RadioactivityAgent(current_id, DEPOSIT_RADIOACTIVITY, environment)
+            else:
+                a = RadioactivityAgent(
+                    current_id, random.uniform(*radioactivity_range), environment
+                )
             environment.schedule.add(a)
             environment.grid.place_agent(a, (i, j))
             current_id += 1

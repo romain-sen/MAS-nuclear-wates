@@ -4,7 +4,7 @@ from mesa.visualization.ModularVisualization import ModularServer
 from model import NuclearWasteModel
 from object import WasteAgent, RadioactivityAgent
 from agent import DefaultAgent
-from types_1 import AgentColor
+from types_1 import AgentColor, DEPOSIT_RADIOACTIVITY
 
 
 def agent_portrayal(agent):
@@ -26,10 +26,13 @@ def agent_portrayal(agent):
         portrayal["h"] = 0.5
         portrayal["Color"] = color_map[agent.color]
     elif isinstance(agent, RadioactivityAgent):
+        if agent.radioactivity == DEPOSIT_RADIOACTIVITY:
+            portrayal["Color"] = "#0025F7"
+        else:
+            portrayal["Color"] = "#9FA2A5"
         portrayal["Shape"] = "rect"
         portrayal["w"] = 0.9
         portrayal["h"] = 0.9
-        portrayal["Color"] = "gray"
     elif isinstance(agent, DefaultAgent):
         color_map = {
             AgentColor.RED: "#E10B0B",
