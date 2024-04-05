@@ -81,18 +81,24 @@ def init_agents(environment):
         environment.obj_id += 1
         random_color = environment.random.choice(list(AgentColor))
         if random_color == AgentColor.RED:
+            x_max = environment.grid.width
             x = environment.random.randrange(
                 2 * environment.grid.width // 3, environment.grid.width
             )
         elif random_color == AgentColor.YELLOW:
+            x_max = 2 * environment.grid.width // 3
             x = environment.random.randrange(
                 environment.grid.width // 3, 2 * environment.grid.width // 3
             )
         else:
+            x_max = environment.grid.width // 3
             x = environment.random.randrange(environment.grid.width // 3)
             y = environment.random.randrange(environment.grid.height)
         a = DefaultAgent(
-            unique_id=environment.obj_id, color=random_color, model=environment
+            unique_id=environment.obj_id,
+            color=random_color,
+            x_max=x_max,
+            model=environment,
         )
         environment.schedule.add(a)
         environment.grid.place_agent(a, (x, y))

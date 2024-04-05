@@ -12,10 +12,18 @@ def update(knowledge: Knowledge, percepts: Percept, actions: Action):
 
 
 class CleaningAgent(Agent):
-    def __init__(self, unique_id: int, color: AgentColor, model: NuclearWasteModel):
+    def __init__(
+        self, unique_id: int, color: AgentColor, x_max: int, model: NuclearWasteModel
+    ):
         super().__init__(unique_id, model)
         self.color = color
-        self.knowledge = Knowledge({"actions": [], "percepts": []})
+        self.knowledge = {
+            "actions": [],
+            "percepts": [],
+            "grid_width": self.model.grid.width,
+            "grid_height": self.model.grid.height,
+            "x_max": x_max,
+        }
         self.percept_temp = Percept(
             radiactivity=0,
             wastes=[],

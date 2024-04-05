@@ -71,6 +71,8 @@ class Percept(TypedDict):
 class Knowledge(TypedDict):
     actions: List[Action]
     percepts: List[Percept]
+    grid_width: int
+    grid_height: int
 
 
 class PickedWastes:
@@ -89,7 +91,7 @@ def find_picked_waste_by_id(
 
 
 class CleaningAgent(Agent):
-    def __init__(self, unique_id: int, color: AgentColor, model): ...
+    def __init__(self, unique_id: int, color: AgentColor, x_max: int, model): ...
 
     def deliberate(self) -> Action: ...
 
