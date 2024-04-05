@@ -112,7 +112,7 @@ def take(agent: CleaningAgent, environment: NuclearWasteModel):
                 waste_on_pos=environment.is_on_waste(agent.pos),
             )
         except Exception as e:
-            print("Exception while taking waste : " + str(e))
+            print(e)
             return last_percept
     return last_percept
 

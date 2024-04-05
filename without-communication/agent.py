@@ -40,6 +40,9 @@ class CleaningAgent(Agent):
     def indicate_color(self):
         return self.color
 
+    def __str__(self) -> str:
+        return f"CleaningAgent(id={self.unique_id}, color={self.color}, pos={self.pos})"
+
 
 class RandomCleaningAgent(CleaningAgent):
     def deliberate(self) -> Action:
