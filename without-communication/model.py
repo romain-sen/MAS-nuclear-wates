@@ -6,7 +6,7 @@ from mesa.datacollection import DataCollector
 from object import RadioactivityAgent, WasteAgent
 from action import handle_action
 
-from types_1 import AgentColor, PickedWastes, DEPOSIT_RADIOACTIVITY
+from types_1 import AgentColor, PickedWastes, DEPOSIT_RADIOACTIVITY, CleaningAgent
 from typing import List
 from utils import init_agents, find_picked_waste_by_id
 
