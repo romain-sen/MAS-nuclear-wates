@@ -14,7 +14,8 @@ Run the simulation and see the visualization :
 - Prevent from merging red wastes
 - Add the deposit Zone
 - Add a global variable for the limit of wastes in hands
- 
+- Ensure the mission is realizable by checking the number of green and yellow wastes (no waste left)
+
 ## Table of Contents
 
 1. [Project Introduction](#project-introduction)

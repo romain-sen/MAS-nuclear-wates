@@ -129,14 +129,13 @@ def drop(agent: CleaningAgent, environment: NuclearWasteModel):
                 for waste in last_percept["wastes"]
                 if waste.unique_id != waste_to_drop
             ]
-            percept = Percept(
+            return Percept(
                 radiactivity=environment.get_radioactivity(agent.pos),
                 wastes=remaining_wastes,
                 pos=agent.pos,
                 other_on_pos=environment.others_on_pos(agent),
                 waste_on_pos=environment.is_on_waste(agent.pos),
             )
-            return percept
     except Exception as e:
         print(e)
         return last_percept

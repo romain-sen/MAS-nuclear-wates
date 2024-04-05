@@ -119,6 +119,7 @@ class NuclearWasteModel(Model):
         self.grid = MultiGrid(width, height, True)
         self.num_agents = N_AGENTS
         self.num_wastes = N_WASTES
+        self.waste_remaining = N_WASTES
         self.running = True
         self.height = height
         self.obj_id = 0
@@ -239,6 +240,24 @@ class NuclearWasteModel(Model):
         # If no waste, raise an exception
         if waste is None:
             raise Exception("No waste to drop.")
+
+        # If a waste is dropped on the deposit zone,
+        if pos == (
+            self.grid.width - 1,
+            self.grid.height - 1,
+        ):
+            # If the waste is red, it disappears
+            if waste.wasteColor == AgentColor.RED:
+                self.picked_wastes_list.remove(waste)
+                self.waste_remaining -= 1
+                print(
+                    f"Waste {waste_id} dropped on the deposit zone. Remaining wastes: {self.waste_remaining}"
+                )
+                return
+            else:
+                # If the waste is not red, it cannot be dropped on the deposit zone
+                raise Exception("Cannot drop untransformed waste on the deposit zone.")
+
         # Add the waste to the grid
         waste_agent = WasteAgent(waste.wasteId, waste.wasteColor, self)
         self.grid.place_agent(waste_agent, pos)
@@ -268,8 +287,12 @@ class NuclearWasteModel(Model):
 
         if waste1.wasteColor == AgentColor.GREEN:
             waste_color = AgentColor.YELLOW
-        else:
+        elif waste1.wasteColor == AgentColor.YELLOW:
             waste_color = AgentColor.RED
+        else:
+            raise Exception(
+                "Cannot merge wastes of different colors or with red waste."
+            )
 
         # Remove the two wastes from the picked wastes list of the environment
         self.picked_wastes_list.remove(waste1)
