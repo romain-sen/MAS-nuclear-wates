@@ -16,10 +16,15 @@ def agent_portrayal(agent):
         "r": 0.5,
     }
     if isinstance(agent, WasteAgent):
+        color_map = {
+            AgentColor.RED: "#E10B0B",
+            AgentColor.YELLOW: "#EFF700",
+            AgentColor.GREEN: "#1EA70B",
+        }
         portrayal["Shape"] = "rect"
         portrayal["w"] = 0.5
         portrayal["h"] = 0.5
-        portrayal["Color"] = agent.indicate_color().__str__()
+        portrayal["Color"] = color_map[agent.color]
     elif isinstance(agent, RadioactivityAgent):
         portrayal["Shape"] = "rect"
         portrayal["w"] = 0.9

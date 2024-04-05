@@ -12,12 +12,6 @@ from agent import DefaultAgent, CleaningAgent
 from types_1 import AgentColor, PickedWastes
 from typing import List
 
-# Logger configuration
-import logging
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
 
 def find_picked_waste_by_id(waste_id: int, picked_wastes_list: List[PickedWastes]):
     """
@@ -70,20 +64,21 @@ def init_agents(environment):
     # Add the wastes
     # TODO : change the probability of the wastes to be placed in the grid (more on the west)
     for i in range(environment.num_wastes):
+        environment.obj_id += 1
         x = environment.random.randrange(environment.grid.width)
         y = environment.random.randrange(environment.grid.height)
         if x < environment.grid.width // 3:
-            a = WasteAgent(environment.obj_id, "green", environment)
+            a = WasteAgent(environment.obj_id, AgentColor.GREEN, environment)
         elif x < 2 * environment.grid.width // 3:
-            a = WasteAgent(environment.obj_id, "yellow", environment)
+            a = WasteAgent(environment.obj_id, AgentColor.YELLOW, environment)
         else:
-            a = WasteAgent(environment.obj_id, "red", environment)
+            a = WasteAgent(environment.obj_id, AgentColor.RED, environment)
         environment.schedule.add(a)
         environment.grid.place_agent(a, (x, y))
-        environment.obj_id += 1
 
     # Add the cleaning agents
     for i in range(environment.num_agents):
+        environment.obj_id += 1
         random_color = environment.random.choice(list(AgentColor))
         if random_color == AgentColor.RED:
             x = environment.random.randrange(
@@ -101,7 +96,6 @@ def init_agents(environment):
         )
         environment.schedule.add(a)
         environment.grid.place_agent(a, (x, y))
-        environment.obj_id += 1
 
 
 class NuclearWasteModel(Model):
@@ -274,7 +268,7 @@ class NuclearWasteModel(Model):
         new_id = self.obj_id + 1
         self.obj_id = new_id
         waste_merged = PickedWastes(
-            agentId=new_id, wasteId=agent_id, wasteColor=waste_color
+            agentId=agent_id, wasteId=new_id, wasteColor=waste_color
         )
         self.picked_wastes_list.append(waste_merged)
 

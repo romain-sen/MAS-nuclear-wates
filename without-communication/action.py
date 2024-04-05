@@ -42,8 +42,7 @@ def move_agent(agent: CleaningAgent, action: Action, environment):
             agent.model.grid.move_agent(agent, (pos[0] - 1, pos[1]))
             return Percept(
                 radiactivity=environment.get_radioactivity(pos),
-                waste1=last_percept["waste1"],
-                waste2=last_percept["waste2"],
+                wastes=last_percept["wastes"],
                 pos=(pos[0] - 1, pos[1]),
                 other_on_pos=environment.others_on_pos(agent),
                 waste_on_pos=environment.is_on_waste(agent.pos),
@@ -55,8 +54,7 @@ def move_agent(agent: CleaningAgent, action: Action, environment):
             agent.model.grid.move_agent(agent, (pos[0] + 1, pos[1]))
             return Percept(
                 radiactivity=environment.get_radioactivity(pos),
-                waste1=last_percept["waste1"],
-                waste2=last_percept["waste2"],
+                wastes=last_percept["wastes"],
                 pos=(pos[0] + 1, pos[1]),
                 other_on_pos=environment.others_on_pos(agent),
                 waste_on_pos=environment.is_on_waste(agent.pos),
@@ -68,8 +66,7 @@ def move_agent(agent: CleaningAgent, action: Action, environment):
             agent.model.grid.move_agent(agent, (pos[0], pos[1] + 1))
             return Percept(
                 radiactivity=environment.get_radioactivity(pos),
-                waste1=last_percept["waste1"],
-                waste2=last_percept["waste2"],
+                wastes=last_percept["wastes"],
                 pos=(pos[0], pos[1] + 1),
                 other_on_pos=environment.others_on_pos(agent),
                 waste_on_pos=environment.is_on_waste(agent.pos),
@@ -81,8 +78,7 @@ def move_agent(agent: CleaningAgent, action: Action, environment):
             agent.model.grid.move_agent(agent, (pos[0], pos[1] - 1))
             return Percept(
                 radiactivity=environment.get_radioactivity(pos),
-                waste1=last_percept["waste1"],
-                waste2=last_percept["waste2"],
+                wastes=last_percept["wastes"],
                 pos=(pos[0], pos[1] - 1),
                 other_on_pos=environment.others_on_pos(agent),
                 waste_on_pos=environment.is_on_waste(agent.pos),
@@ -106,27 +102,17 @@ def take(agent: CleaningAgent, environment: NuclearWasteModel):
             environment.give_waste_agent(
                 waste_agent.unique_id, waste_agent.color, agent.unique_id, agent.pos
             )
-            if last_percept["waste1"] is None:
-                percept = Percept(
-                    radiactivity=environment.get_radioactivity(agent.pos),
-                    waste1=waste_agent,
-                    waste2=None,
-                    pos=agent.pos,
-                    other_on_pos=environment.others_on_pos(agent),
-                    waste_on_pos=environment.is_on_waste(agent.pos),
-                )
-            else:
-                percept = Percept(
-                    radiactivity=environment.get_radioactivity(agent.pos),
-                    waste1=last_percept["waste1"],
-                    waste2=waste_agent,
-                    pos=agent.pos,
-                    other_on_pos=environment.others_on_pos(agent),
-                    waste_on_pos=environment.is_on_waste(agent.pos),
-                )
-            return percept
+            new_wastes = last_percept["wastes"]
+            new_wastes.append(waste_agent)
+            return Percept(
+                radiactivity=environment.get_radioactivity(agent.pos),
+                wastes=new_wastes,
+                pos=agent.pos,
+                other_on_pos=environment.others_on_pos(agent),
+                waste_on_pos=environment.is_on_waste(agent.pos),
+            )
         except Exception as e:
-            print("Exception while taking waste : " + str(e))
+            print(e)
             return last_percept
     return last_percept
 
@@ -135,18 +121,22 @@ def drop(agent: CleaningAgent, environment: NuclearWasteModel):
     # Get the last percept of the agent
     last_percept = agent.give_last_percept()
     try:
-        # TODO: Drop the first waste of the list
-        waste_id = last_percept["waste1"].unique_id
-        environment.drop_waste(waste_id, agent.pos)
-        percept = Percept(
-            radiactivity=environment.get_radioactivity(agent.pos),
-            waste1=None,
-            waste2=last_percept["waste2"],
-            pos=agent.pos,
-            other_on_pos=environment.others_on_pos(agent),
-            waste_on_pos=environment.is_on_waste(agent.pos),
-        )
-        return percept
+        if len(last_percept["wastes"]) > 0:
+            waste_to_drop = last_percept["wastes"][0].unique_id
+            environment.drop_waste(waste_to_drop, agent.pos)
+            remaining_wastes = [
+                waste
+                for waste in last_percept["wastes"]
+                if waste.unique_id != waste_to_drop
+            ]
+            percept = Percept(
+                radiactivity=environment.get_radioactivity(agent.pos),
+                wastes=remaining_wastes,
+                pos=agent.pos,
+                other_on_pos=environment.others_on_pos(agent),
+                waste_on_pos=environment.is_on_waste(agent.pos),
+            )
+            return percept
     except Exception as e:
         print(e)
         return last_percept
@@ -156,18 +146,19 @@ def merge(agent: CleaningAgent, environment: NuclearWasteModel):
     # Get the last percept of the agent
     last_percept = agent.give_last_percept()
     try:
+        if len(last_percept["wastes"]) < 2:
+            raise Exception("Not enough wastes to merge.")
 
         new_waste = environment.merge_wastes(
-            last_percept["waste1"].unique_id,
-            last_percept["waste2"].unique_id,
-            agent.unique_id,
+            waste_id1=last_percept["wastes"][0].unique_id,
+            waste_id2=last_percept["wastes"][1].unique_id,
+            agent_id=agent.unique_id,
             pos=agent.pos,
         )
         # Update the percept with the new waste
         return Percept(
             radiactivity=environment.get_radioactivity(agent.pos),
-            waste1=new_waste,
-            waste2=None,
+            wastes=[new_waste],
             pos=agent.pos,
             other_on_pos=environment.others_on_pos(agent),
             waste_on_pos=environment.is_on_waste(agent.pos),
