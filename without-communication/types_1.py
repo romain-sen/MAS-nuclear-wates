@@ -58,18 +58,14 @@ class WasteAgent(Agent):
 
 class Percept(TypedDict):
     radiactivity: float
-    waste1: WasteAgent
-    waste2: WasteAgent
+    wastes: List[WasteAgent]
     pos: Tuple[int, int]
     other_on_pos: bool
-    waste_on_pos: AgentColor
+    waste_on_pos: Optional[AgentColor]
 
-    # def __str__(self) -> str:
-    #     return f"Percept(radiactivity={self['radiactivity']}, waste1={self['waste1'].__str__()}, waste2={self['waste2'].__str__()}, pos={self['pos']}, other_on_pos={self['other_on_pos']}, waste_on_pos={self['waste_on_pos']})"
     def __str__(self) -> str:
-        waste1_str = self["waste1"].__str__() if self["waste1"] else "None"
-        waste2_str = self["waste2"].__str__() if self["waste2"] else "None"
-        return f"Percept(radiactivity={self['radiactivity']}, waste1={waste1_str}, waste2={waste2_str}, pos={self['pos']}, other_on_pos={self['other_on_pos']}, waste_on_pos={self['waste_on_pos']})"
+        wastes_str = ", ".join([str(waste) for waste in self["wastes"]])
+        return f"Percept(radiactivity={self['radiactivity']}, wastes=[{wastes_str}], pos={self['pos']}, other_on_pos={self['other_on_pos']}, waste_on_pos={self['waste_on_pos']})"
 
 
 class Knowledge(TypedDict):
@@ -128,9 +124,11 @@ class NuclearWasteModel(Model):
 
     def get_who_picked_waste(self, waste_id: int) -> int: ...
 
-    def give_waste_agent(self, waste_id: int, waste_color, agent_id: int): ...
+    def give_waste_agent(
+        self, waste_id: int, waste_color, agent_id: int, pos: tuple[int, int]
+    ): ...
 
-    def drop_waste(self, waste_id: int, agent_id: int, pos: tuple[int, int]): ...
+    def drop_waste(self, waste_id: int, pos: tuple[int, int]): ...
 
     def merge_wastes(
         self, waste_id1: int, waste_id2: int, agent_id: int, pos: tuple[int, int]

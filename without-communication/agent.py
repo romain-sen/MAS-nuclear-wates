@@ -15,11 +15,10 @@ class CleaningAgent(Agent):
     def __init__(self, unique_id: int, color: AgentColor, model: NuclearWasteModel):
         super().__init__(unique_id, model)
         self.color = color
-        self.knowledge = {"actions": [], "percepts": []}
+        self.knowledge = Knowledge({"actions": [], "percepts": []})
         self.percept_temp = Percept(
             radiactivity=0,
-            waste1=None,
-            waste2=None,
+            wastes=[],
             pos=(0, 0),
             other_on_pos=False,
             waste_on_pos=None,
@@ -46,32 +45,32 @@ class RandomCleaningAgent(CleaningAgent):
     def deliberate(self) -> Action:
         # Choose randomly an action to move
         movables = [Action.UP, Action.DOWN, Action.LEFT, Action.RIGHT]
-        return movables[self.random.randrange(4)]
+        return movables[self.random.randrange(len(movables))]
 
 
 class DefaultAgent(CleaningAgent):
     def deliberate(self) -> Action:
         last_percept = self.give_last_percept()
         movables = [Action.UP, Action.DOWN, Action.LEFT, Action.RIGHT]
-        action = movables[self.random.randrange(4)]
+        action = movables[self.random.randrange(len(movables))]
         # If the agent is on a waste, not on the top row and has a free spot, take it
         if (
-            (last_percept["waste1"] is None or last_percept["waste2"] is None)
+            (last_percept["wastes"] is not None and len(last_percept["wastes"]) < 2)
             and self.model.is_on_waste(self.pos) is not None
             and last_percept["pos"][1] < self.model.height - 1
         ):
             # TODO : Check if the agent is on top without using the height of the grid
             action = Action.TAKE
 
-        if last_percept["waste1"] is not None and last_percept["waste2"] is not None:
+        if len(last_percept["wastes"]) == 2:
             if (
-                last_percept["waste1"].indicate_color()
-                == last_percept["waste2"].indicate_color()
+                last_percept["wastes"][0].indicate_color()
+                == last_percept["wastes"][1].indicate_color()
             ):
                 action = Action.MERGE
 
         # If the agent has a waste, go up to drop it on the top row
-        if last_percept["waste1"] is not None and action != Action.MERGE:
+        if len(last_percept["wastes"]) > 0 and action != Action.MERGE:
             if len(self.knowledge["percepts"]) > 1:
                 # Try to go up first
                 if self.action_temp != Action.UP:
@@ -96,14 +95,14 @@ class DefaultAgent(CleaningAgent):
                         else:
                             # if there is a waste, and the wastes are the same color, pick and merge them
                             if (
-                                last_percept["waste1"].indicate_color()
+                                last_percept["wastes"][0].indicate_color()
                                 == last_percept["waste_on_pos"]
                             ):
                                 action = Action.TAKE
                             else:
                                 # Otherwise, go somewhere else to drop it
                                 movables = [Action.LEFT, Action.RIGHT]
-                                action = movables[self.random.randrange(4)]
+                                action = movables[self.random.randrange(len(movables))]
             elif len(self.knowledge["percepts"]) == 1:
                 action = Action.UP
 
