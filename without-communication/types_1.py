@@ -71,6 +71,8 @@ class Percept(TypedDict):
 class Knowledge(TypedDict):
     actions: List[Action]
     percepts: List[Percept]
+    grid_width: int
+    grid_height: int
 
 
 class PickedWastes:
