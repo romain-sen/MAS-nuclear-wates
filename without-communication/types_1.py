@@ -4,6 +4,7 @@ from mesa import Agent, Model
 
 # The radioactivity of the deposit zone.
 DEPOSIT_RADIOACTIVITY = -100
+MAX_WASTE_HANDED = 2
 
 
 class AgentColor(enum.Enum):

@@ -58,6 +58,7 @@ class NuclearWasteModel(Model):
         assert self.num_agents > 0, "Invalid number of agents."
         assert self.num_wastes >= 0, "Invalid number of wastes."
 
+        self.max_wastes_handed = max_wastes_handed
         self.picked_wastes_list: List[PickedWastes] = []
 
         self.schedule = RandomActivation(self)
