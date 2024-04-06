@@ -1,6 +1,14 @@
 from model import NuclearWasteModel
-import seaborn as sns
 
-model = NuclearWasteModel(N_AGENTS=5, N_WASTES=10, width=100, height=100)
+model = NuclearWasteModel(
+    width=10,
+    height=10,
+    n_green_agents=10,
+    n_yellow_agents=10,
+    n_red_agents=10,
+    n_wastes=10,
+    wastes_distribution=5,
+    max_wastes_handed=5,
+)
 for i in range(10):
     model.step()

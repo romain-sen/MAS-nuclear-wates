@@ -116,7 +116,9 @@ class NuclearWasteModel(Model):
 
     def __init__(
         self,
-        N_AGENTS,
+        N_GREEN_AGENTS,
+        N_YELLOW_AGENTS,
+        N_RED_AGENTS,
         N_WASTES,
         wastes_distribution,
         width,

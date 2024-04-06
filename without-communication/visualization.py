@@ -49,7 +49,9 @@ def agent_portrayal(agent):
 
 width = 12
 height = 10
-n_agents = 5
+n_green_agents = 5
+n_yellow_agents = 5
+n_red_agents = 5
 n_wastes = 10
 waste_distribution = 5
 max_wastes_handed = 2
@@ -59,12 +61,14 @@ server = ModularServer(
     [grid],
     "NuclearWasteModel",
     {
-        "N_AGENTS": n_agents,
-        "N_WASTES": n_wastes,
+        "n_green_agents": n_green_agents,
+        "n_yellow_agents": n_yellow_agents,
+        "n_red_agents": n_red_agents,
+        "n_wastes": n_wastes,
         "wastes_distribution": waste_distribution,
         "width": width,
         "height": height,
-        "MAX_WASTES_HANDED": max_wastes_handed,
+        "max_wastes_handed": max_wastes_handed,
     },
 )
 server.port = 8521  # The default
