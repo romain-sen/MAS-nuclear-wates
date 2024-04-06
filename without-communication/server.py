@@ -1,3 +1,4 @@
+import mesa
 from mesa.visualization.modules import CanvasGrid
 from mesa.visualization.ModularVisualization import ModularServer
 
@@ -65,33 +66,24 @@ def agent_portrayal(agent):
         portrayal["Layer"] = 2
         portrayal["scale"] = 0.9
     
-
     return portrayal
 
 width = 12
 height = 10
-n_green_agents = 5
-n_yellow_agents = 5
-n_red_agents = 5
-n_wastes = 10
-waste_distribution = 5
-max_wastes_handed = 2
-grid = CanvasGrid(agent_portrayal, width, height, width * 50, height * 50)
-server = ModularServer(
-    NuclearWasteModel,
-    [grid],
-    "NuclearWasteModel",
-    {
-        "n_green_agents": n_green_agents,
-        "n_yellow_agents": n_yellow_agents,
-        "n_red_agents": n_red_agents,
-        "n_wastes": n_wastes,
-        "wastes_distribution": waste_distribution,
-        "width": width,
-        "height": height,
-        "max_wastes_handed": max_wastes_handed,
-    },
-)
+
+model_params = {
+    "n_green_agents": mesa.visualization.Slider("Green Agents", 3, 1, 5),
+    "n_yellow_agents": mesa.visualization.Slider("Yellow Agents", 3, 1, 5),
+    "n_red_agents": mesa.visualization.Slider("Red Agents", 3, 1, 5),
+    "n_wastes": mesa.visualization.Slider("Wastes", 10, 1, 20),
+    "wastes_distribution": mesa.visualization.Slider("Waste Distribution", 1, 1, 5),
+    "max_wastes_handed": mesa.visualization.Slider("Max Wastes Handed", 2, 2, 2),
+    "width": width,
+    "height": height,
+    }
+
+grid = CanvasGrid(agent_portrayal, width, height, width*50, height*50)
+server = ModularServer(NuclearWasteModel, [grid], "NuclearWasteModel", model_params)
 server.port = 8521  # The default
 server.reset_model()
 server.launch()
