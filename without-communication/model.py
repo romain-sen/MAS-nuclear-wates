@@ -7,7 +7,7 @@ from mesa.datacollection import DataCollector
 
 from object import RadioactivityAgent, WasteAgent
 from action import handle_action
-from agent import DefaultAgent, CleaningAgent
+from agent import DefaultAgent, CleaningAgent, RandomCleaningAgent
 
 from types_1 import AgentColor, PickedWastes, DEPOSIT_RADIOACTIVITY
 from typing import List
@@ -98,7 +98,7 @@ def init_agents(environment):
             x_max = environment.grid.width // 3
             x = environment.random.randrange(environment.grid.width // 3)
             y = environment.random.randrange(environment.grid.height)
-        a = DefaultAgent(
+        a = RandomCleaningAgent(
             unique_id=environment.obj_id,
             color=random_color,
             x_max=x_max,
@@ -113,7 +113,9 @@ class NuclearWasteModel(Model):
     The environment of the model.
     """
 
-    def __init__(self, N_AGENTS=3, N_WASTES=3, width=10, height=10):
+    def __init__(
+        self, N_AGENTS=3, N_WASTES=3, width=10, height=10, MAX_WASTES_HANDED=2
+    ):
         super().__init__()
 
         self.grid = MultiGrid(width, height, True)
@@ -123,11 +125,7 @@ class NuclearWasteModel(Model):
         self.running = True
         self.height = height
         self.obj_id = 0
-
-        assert self.grid is not None, "Grid is not initialized."
-        assert self.num_agents > 0, "Invalid number of agents."
-        assert self.num_wastes >= 0, "Invalid number of wastes."
-
+        self.max_wastes_handed = MAX_WASTES_HANDED
         self.picked_wastes_list: List[PickedWastes] = []
 
         # TODO : Move schedule to the schedule.py
@@ -214,9 +212,11 @@ class NuclearWasteModel(Model):
                     if waste.agentId == agent_id
                 ]
             )
-            >= 2
+            >= self.max_wastes_handed
         ):
-            raise Exception("Agent already carrying two wastes.")
+            raise Exception(
+                f"Agent {agent_id} cannot carry more than {self.max_wastes_handed} wastes."
+            )
 
         # Add the waste to the picked wastes list of the environment
         self.picked_wastes_list.append(

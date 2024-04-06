@@ -23,6 +23,7 @@ class CleaningAgent(Agent):
             "grid_width": self.model.grid.width,
             "grid_height": self.model.grid.height,
             "x_max": x_max,
+            "max_wastes_handed": self.model.max_wastes_handed,
         }
         self.percept_temp = Percept(
             radiactivity=0,
@@ -54,6 +55,13 @@ class CleaningAgent(Agent):
 
 class RandomCleaningAgent(CleaningAgent):
     def deliberate(self) -> Action:
+        last_percept = self.give_last_percept()
+        # If can pick a waste, do it
+        if (
+            self.model.is_on_waste(self.pos) is not None
+            and len(last_percept["wastes"]) < self.knowledge["max_wastes_handed"]
+        ):
+            return Action.TAKE
         # Choose randomly an action to move
         movables = [Action.UP, Action.DOWN, Action.LEFT, Action.RIGHT]
         return movables[self.random.randrange(len(movables))]

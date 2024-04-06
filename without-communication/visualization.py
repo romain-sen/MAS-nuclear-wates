@@ -49,14 +49,21 @@ def agent_portrayal(agent):
 
 width = 12
 height = 10
-n_agents = 3
-n_wastes = 3
+n_agents = 1
+n_wastes = 9
+max_wastes_handed = 2
 grid = CanvasGrid(agent_portrayal, width, height, width * 50, height * 50)
 server = ModularServer(
     NuclearWasteModel,
     [grid],
     "NuclearWasteModel",
-    {"N_AGENTS": n_agents, "N_WASTES": n_wastes, "width": width, "height": height},
+    {
+        "N_AGENTS": n_agents,
+        "N_WASTES": n_wastes,
+        "width": width,
+        "height": height,
+        "max_wastes_handed": max_wastes_handed,
+    },
 )
 server.port = 8521  # The default
 server.reset_model()
