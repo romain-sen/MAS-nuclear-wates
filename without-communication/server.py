@@ -7,14 +7,6 @@ from object import WasteAgent, RadioactivityAgent
 from agent import DefaultAgent
 from types_1 import AgentColor, DEPOSIT_RADIOACTIVITY
 
-import matplotlib.colors as mcolors
-
-def is_valid_color(hex_color):
-    try:
-        mcolors.to_rgba(hex_color)
-        return True
-    except ValueError:
-        return False
     
 def agent_portrayal(agent):
     portrayal = {}
