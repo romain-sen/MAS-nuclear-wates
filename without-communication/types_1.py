@@ -2,6 +2,9 @@ import enum
 from typing import Dict, List, TypedDict, Tuple, Optional
 from mesa import Agent, Model
 
+# The radioactivity of the deposit zone.
+DEPOSIT_RADIOACTIVITY = -100
+
 
 class AgentColor(enum.Enum):
     RED = 0
@@ -73,6 +76,7 @@ class Knowledge(TypedDict):
     percepts: List[Percept]
     grid_width: int
     grid_height: int
+    max_wastes_handed: int
 
 
 class PickedWastes:
@@ -110,7 +114,17 @@ class NuclearWasteModel(Model):
     The environment of the model.
     """
 
-    def __init__(self, N_AGENTS, N_WASTES, width, height): ...
+    def __init__(
+        self,
+        N_GREEN_AGENTS,
+        N_YELLOW_AGENTS,
+        N_RED_AGENTS,
+        N_WASTES,
+        wastes_distribution,
+        width,
+        height,
+        MAX_WASTES_HANDED,
+    ): ...
 
     def step(self): ...
 

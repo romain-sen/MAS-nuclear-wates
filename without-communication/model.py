@@ -1,5 +1,3 @@
-import random
-
 from mesa import Model
 from mesa.time import RandomActivation
 from mesa.space import MultiGrid
@@ -7,125 +5,55 @@ from mesa.datacollection import DataCollector
 
 from object import RadioactivityAgent, WasteAgent
 from action import handle_action
-from agent import DefaultAgent, CleaningAgent
+from agent import DefaultAgent, CleaningAgent, RandomCleaningAgent
 
-from types_1 import AgentColor, PickedWastes
+from types_1 import AgentColor, PickedWastes, DEPOSIT_RADIOACTIVITY
 from typing import List
-
-
-def find_picked_waste_by_id(waste_id: int, picked_wastes_list: List[PickedWastes]):
-    """
-    Find a PickedWastes object in a list by its wasteId.
-
-    :param waste_id: The wasteId to search for.
-    :param picked_wastes_list: The list of PickedWastes objects.
-    :return: The PickedWastes object with the matching wasteId, or None if not found.
-    """
-    for picked_waste in picked_wastes_list:
-        if picked_waste.wasteId == waste_id:
-            return picked_waste
-    return None
-
-
-def initialize_zone(start_x, end_x, radioactivity_range, environment, current_id):
-    for i in range(start_x, end_x):
-        for j in range(environment.grid.height):
-            a = RadioactivityAgent(
-                current_id, random.uniform(*radioactivity_range), environment
-            )
-            environment.schedule.add(a)
-            environment.grid.place_agent(a, (i, j))
-            current_id += 1
-    return current_id
-
-
-def init_agents(environment):
-    width_third = environment.grid.width // 3
-
-    # Zone 1 (West): radioactivity from 0 to 0.33
-    environment.obj_id = initialize_zone(
-        0, width_third, (0, 0.33), environment, environment.obj_id
-    )
-
-    # Zone 2 (Middle): radioactivity from 0.33 to 0.66
-    environment.obj_id = initialize_zone(
-        width_third, 2 * width_third, (0.33, 0.66), environment, environment.obj_id
-    )
-
-    # Zone 3 (East): radioactivity from 0.66 to 1
-    environment.obj_id = initialize_zone(
-        2 * width_third,
-        environment.grid.width,
-        (0.66, 1),
-        environment,
-        environment.obj_id,
-    )
-
-    # Add the wastes
-    # TODO : change the probability of the wastes to be placed in the grid (more on the west)
-    for i in range(environment.num_wastes):
-        environment.obj_id += 1
-        x = environment.random.randrange(environment.grid.width)
-        y = environment.random.randrange(environment.grid.height)
-        if x < environment.grid.width // 3:
-            a = WasteAgent(environment.obj_id, AgentColor.GREEN, environment)
-        elif x < 2 * environment.grid.width // 3:
-            a = WasteAgent(environment.obj_id, AgentColor.YELLOW, environment)
-        else:
-            a = WasteAgent(environment.obj_id, AgentColor.RED, environment)
-        environment.schedule.add(a)
-        environment.grid.place_agent(a, (x, y))
-
-    # Add the cleaning agents
-    for i in range(environment.num_agents):
-        environment.obj_id += 1
-        random_color = environment.random.choice(list(AgentColor))
-        if random_color == AgentColor.RED:
-            x_max = environment.grid.width
-            x = environment.random.randrange(
-                2 * environment.grid.width // 3, environment.grid.width
-            )
-        elif random_color == AgentColor.YELLOW:
-            x_max = 2 * environment.grid.width // 3
-            x = environment.random.randrange(
-                environment.grid.width // 3, 2 * environment.grid.width // 3
-            )
-        else:
-            x_max = environment.grid.width // 3
-            x = environment.random.randrange(environment.grid.width // 3)
-            y = environment.random.randrange(environment.grid.height)
-        a = DefaultAgent(
-            unique_id=environment.obj_id,
-            color=random_color,
-            x_max=x_max,
-            model=environment,
-        )
-        environment.schedule.add(a)
-        environment.grid.place_agent(a, (x, y))
+from utils import init_agents, find_picked_waste_by_id
 
 
 class NuclearWasteModel(Model):
     """
     The environment of the model.
+
+    Parameters:
+    - n_green_agents (int): The number of green cleaning agents in the model.
+    - n_yellow_agents (int): The number of yellow cleaning agents in the model.
+    - n_red_agents (int): The number of red cleaning agents in the model.
+    - n_wastes (int): The total number of nuclear wastes in the model.
+    - wastes_distribution (number): The repartition of the wastes between the three colors. Must be between 0 and 10. 0 means more green wastes, 10 means more red wastes.
+    - width (int): The width of the grid representing the environment.
+    - height (int): The height of the grid representing the environment.
+    - max_wastes_handed (int): The maximum number of wastes that an agent can carry at a time.
     """
 
-    def __init__(self, N_AGENTS=3, N_WASTES=3, width=10, height=10):
+    def __init__(
+        self,
+        n_green_agents=5,
+        n_yellow_agents=5,
+        n_red_agents=5,
+        n_wastes=3,
+        wastes_distribution=5,
+        width=10,
+        height=10,
+        max_wastes_handed=2,
+    ):
         super().__init__()
 
         self.grid = MultiGrid(width, height, True)
-        self.num_agents = N_AGENTS
-        self.num_wastes = N_WASTES
+        self.num_agents = n_green_agents + n_yellow_agents + n_red_agents
+        self.num_green_agents = n_green_agents
+        self.num_yellow_agents = n_yellow_agents
+        self.num_red_agents = n_red_agents
+        self.num_wastes = n_wastes
+        self.waste_remaining = n_wastes
+        self.wastes_distribution = wastes_distribution
         self.running = True
         self.height = height
         self.obj_id = 0
-
-        assert self.grid is not None, "Grid is not initialized."
-        assert self.num_agents > 0, "Invalid number of agents."
-        assert self.num_wastes >= 0, "Invalid number of wastes."
-
+        self.max_wastes_handed = max_wastes_handed
         self.picked_wastes_list: List[PickedWastes] = []
 
-        # TODO : Move schedule to the schedule.py
         self.schedule = RandomActivation(self)
 
         # Create the data collector
@@ -209,9 +137,11 @@ class NuclearWasteModel(Model):
                     if waste.agentId == agent_id
                 ]
             )
-            >= 2
+            >= self.max_wastes_handed
         ):
-            raise Exception("Agent already carrying two wastes.")
+            raise Exception(
+                f"Agent {agent_id} cannot carry more than {self.max_wastes_handed} wastes."
+            )
 
         # Add the waste to the picked wastes list of the environment
         self.picked_wastes_list.append(
@@ -235,6 +165,24 @@ class NuclearWasteModel(Model):
         # If no waste, raise an exception
         if waste is None:
             raise Exception("No waste to drop.")
+
+        # If a waste is dropped on the deposit zone,
+        if pos == (
+            self.grid.width - 1,
+            self.grid.height - 1,
+        ):
+            # If the waste is red, it disappears
+            if waste.wasteColor == AgentColor.RED:
+                self.picked_wastes_list.remove(waste)
+                self.waste_remaining -= 1
+                print(
+                    f"Waste {waste_id} dropped on the deposit zone. Remaining wastes: {self.waste_remaining}"
+                )
+                return
+            else:
+                # If the waste is not red, it cannot be dropped on the deposit zone
+                raise Exception("Cannot drop untransformed waste on the deposit zone.")
+
         # Add the waste to the grid
         waste_agent = WasteAgent(waste.wasteId, waste.wasteColor, self)
         self.grid.place_agent(waste_agent, pos)
@@ -264,8 +212,12 @@ class NuclearWasteModel(Model):
 
         if waste1.wasteColor == AgentColor.GREEN:
             waste_color = AgentColor.YELLOW
-        else:
+        elif waste1.wasteColor == AgentColor.YELLOW:
             waste_color = AgentColor.RED
+        else:
+            raise Exception(
+                "Cannot merge wastes of different colors or with red waste."
+            )
 
         # Remove the two wastes from the picked wastes list of the environment
         self.picked_wastes_list.remove(waste1)
