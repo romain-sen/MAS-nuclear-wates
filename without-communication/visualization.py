@@ -49,8 +49,9 @@ def agent_portrayal(agent):
 
 width = 12
 height = 10
-n_agents = 1
-n_wastes = 9
+n_agents = 5
+n_wastes = 10
+waste_distribution = 5
 max_wastes_handed = 2
 grid = CanvasGrid(agent_portrayal, width, height, width * 50, height * 50)
 server = ModularServer(
@@ -60,9 +61,10 @@ server = ModularServer(
     {
         "N_AGENTS": n_agents,
         "N_WASTES": n_wastes,
+        "wastes_distribution": waste_distribution,
         "width": width,
         "height": height,
-        "max_wastes_handed": max_wastes_handed,
+        "MAX_WASTES_HANDED": max_wastes_handed,
     },
 )
 server.port = 8521  # The default

@@ -43,6 +43,75 @@ def initialize_zone(start_x, end_x, radioactivity_range, environment, current_id
     return current_id
 
 
+def initialize_wastes(environment, wastes_distribution):
+    """
+    Initializes the wastes in the environment based on the given distribution.
+
+    Args:
+        environment (Environment): The environment object.
+        wastes_distribution (int): The distribution of wastes, ranging from 0 to 10.
+
+    Raises:
+        ValueError: If the wastes_distribution is not between 0 and 10.
+
+    Notes:
+        - The wastes_distribution determines the ratio of green, yellow, and red wastes.
+        - When wastes_distribution is 0, most of the wastes are green and least are red.
+        - When wastes_distribution is 10, most of the wastes are red and least are green.
+        - The counts of green and yellow wastes are ensured to be even numbers.
+        - The total number of wastes does not exceed the environment's num_wastes.
+        - Any remaining wastes are allocated to yellow, adjusting to make it even if necessary.
+    """
+    if not 0 <= wastes_distribution <= 10:
+        raise ValueError("wastes_distribution must be between 0 and 10.")
+
+    green_ratio = (10 - wastes_distribution) / 10
+    red_ratio = wastes_distribution / 10
+
+    # Determine counts - ensuring green and yellow counts are even numbers.
+    num_green = max(0, round(environment.num_wastes * green_ratio // 2) * 2)
+    num_red = max(0, round(environment.num_wastes * red_ratio // 2) * 2)
+
+    # Ensure total does not exceed environment.num_wastes.
+    # Allocate remainder to yellow, adjusting to make it even if necessary.
+    num_yellow = environment.num_wastes - num_green - num_red
+    if num_yellow % 2 != 0:
+        if num_green < num_red:
+            num_yellow -= 1
+            num_green += 2
+        else:  # num_green >= num_red
+            num_yellow += 1
+            num_red -= 1
+
+    for _ in range(environment.num_wastes):
+        environment.obj_id += 1
+        y = environment.random.randrange(environment.grid.height)
+        if num_green > 0:
+            color = AgentColor.GREEN
+            x = environment.random.randrange(environment.grid.width // 3)
+            num_green -= 1
+        elif num_yellow > 0:
+            color = AgentColor.YELLOW
+            x = environment.random.randrange(
+                environment.grid.width // 3, 2 * environment.grid.width // 3
+            )
+            num_yellow -= 1
+        else:
+            color = AgentColor.RED
+            # Ensure no wastes are placed on the deposit zone
+            if y == environment.grid.height - 1:
+                x = environment.random.randrange(
+                    2 * environment.grid.width // 3, environment.grid.width - 1
+                )
+            else:
+                x = environment.random.randrange(
+                    2 * environment.grid.width // 3, environment.grid.width
+                )
+        waste_agent = WasteAgent(environment.obj_id, color, environment)
+        environment.schedule.add(waste_agent)
+        environment.grid.place_agent(waste_agent, (x, y))
+
+
 def init_agents(environment):
     width_third = environment.grid.width // 3
 
@@ -66,19 +135,7 @@ def init_agents(environment):
     )
 
     # Add the wastes
-    # TODO : change the probability of the wastes to be placed in the grid (more on the west)
-    for i in range(environment.num_wastes):
-        environment.obj_id += 1
-        x = environment.random.randrange(environment.grid.width)
-        y = environment.random.randrange(environment.grid.height)
-        if x < environment.grid.width // 3:
-            a = WasteAgent(environment.obj_id, AgentColor.GREEN, environment)
-        elif x < 2 * environment.grid.width // 3:
-            a = WasteAgent(environment.obj_id, AgentColor.YELLOW, environment)
-        else:
-            a = WasteAgent(environment.obj_id, AgentColor.RED, environment)
-        environment.schedule.add(a)
-        environment.grid.place_agent(a, (x, y))
+    initialize_wastes(environment, environment.wastes_distribution)
 
     # Add the cleaning agents
     for i in range(environment.num_agents):
@@ -96,8 +153,9 @@ def init_agents(environment):
             )
         else:
             x_max = environment.grid.width // 3
-            x = environment.random.randrange(environment.grid.width // 3)
-            y = environment.random.randrange(environment.grid.height)
+            x = environment.random.randrange(0, environment.grid.width // 3)
+
+        y = environment.random.randrange(environment.grid.height)
         a = RandomCleaningAgent(
             unique_id=environment.obj_id,
             color=random_color,
@@ -111,10 +169,24 @@ def init_agents(environment):
 class NuclearWasteModel(Model):
     """
     The environment of the model.
+
+    Parameters:
+    - N_AGENTS (int): The number of cleaning agents in the model.
+    - N_WASTES (int): The total number of nuclear wastes in the model.
+    - wastes_distribution (number): The repartition of the wastes between the three colors. Must be between 0 and 10. 0 means more green wastes, 10 means more red wastes.
+    - width (int): The width of the grid representing the environment.
+    - height (int): The height of the grid representing the environment.
+    - MAX_WASTES_HANDED (int): The maximum number of wastes that an agent can carry at a time.
     """
 
     def __init__(
-        self, N_AGENTS=3, N_WASTES=3, width=10, height=10, MAX_WASTES_HANDED=2
+        self,
+        N_AGENTS=3,
+        N_WASTES=3,
+        wastes_distribution=5,
+        width=10,
+        height=10,
+        MAX_WASTES_HANDED=2,
     ):
         super().__init__()
 
@@ -122,6 +194,7 @@ class NuclearWasteModel(Model):
         self.num_agents = N_AGENTS
         self.num_wastes = N_WASTES
         self.waste_remaining = N_WASTES
+        self.wastes_distribution = wastes_distribution
         self.running = True
         self.height = height
         self.obj_id = 0

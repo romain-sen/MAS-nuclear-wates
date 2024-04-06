@@ -11,10 +11,6 @@ Run the simulation and see the visualization :
 ## TODO
 
 - Change method to pick waste so the agent can chose which waste to pick (instead of always the first)
-- Prevent from merging red wastes
-- Add the deposit Zone
-- Add a global variable for the limit of wastes in hands
-- Ensure the mission is realizable by checking the number of green and yellow wastes (no waste left)
 
 ## Table of Contents
 

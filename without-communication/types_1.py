@@ -4,7 +4,6 @@ from mesa import Agent, Model
 
 # The radioactivity of the deposit zone.
 DEPOSIT_RADIOACTIVITY = -100
-MAX_WASTE_HANDED = 2
 
 
 class AgentColor(enum.Enum):
@@ -115,7 +114,15 @@ class NuclearWasteModel(Model):
     The environment of the model.
     """
 
-    def __init__(self, N_AGENTS, N_WASTES, width, height): ...
+    def __init__(
+        self,
+        N_AGENTS,
+        N_WASTES,
+        wastes_distribution,
+        width,
+        height,
+        MAX_WASTES_HANDED,
+    ): ...
 
     def step(self): ...
 
