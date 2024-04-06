@@ -52,7 +52,7 @@ The structure of each agent remains the same:
   - **Actions**: a list of actions performed by the agent
 
   Here is what the knowlegde variable looks like :
-  
+
 ```python
 knowledges = {
     "actions": [
