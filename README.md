@@ -31,6 +31,16 @@ We are on a hazardous terrain filled with radioactive waste. The terrain is divi
 
 The project's goal is to clean up the area with multiple agents picking up waste, merging it, and bringing it to the east side of the zone.
 
+## Environment
+
+The environment is responsible for initially initializing all agents and placing them on the terrain grid.
+
+It is also here that we collect the data for further analysis of the simulation. Thus, at each step, we record in a dataframe the position of each agent as well as its knowledge if it has any. We can also use this class to visualize in live the simulation (in the file `server.py`).
+
+Finally, it is in the environment that we define the do function that agents call to perform an action. This function is implemented with a functional paradigm. If an agent want to do something, it has to return an action in this list : `LEFT`, `RIGHT`, `UP`, `DOWN`, `TAKE`, `DROP`, `MERGE`, `STAY`. The handler for each of these actions are defined in the file `action.py`. These action, when are call, ask the environment to perform the action. If it is not possible because the envrionment thinks it as against the rule (e.g. going outside the grid), it raises an error and the action handler return to the agent its last percep. So, if an agent wants to know if its action has been performed, it can compares its last two percepts.
+
+The code for the environment is found in the `model.py` file.
+
 ## Agents
 
 We have three different agent classes with different behaviors: RobotGreen, RobotYellow, and RobotRed.
@@ -42,7 +52,7 @@ The structure of each agent remains the same:
   - **Actions**: a list of actions performed by the agent
 
   Here is what the knowlegde variable looks like :
-
+  
 ```python
 knowledges = {
     "actions": [
@@ -65,6 +75,9 @@ knowledges = {
             "other_on_pos": False,
         },
     ],
+    "grid_width": 12,
+    "grid_height": 10,
+    "max_wastes_handed": 2,
 }
 ```
 
@@ -102,13 +115,3 @@ The code for these agents is in the `objects.py` file.
 ## Scheduler
 
 The scheduler is defined in the `schedule.py` file. It defines who is called and in what order at each step (this will be a random order).
-
-## Environment
-
-The environment is responsible for initially initializing all agents and placing them on the terrain grid.
-
-It is also here that we collect the variables and data of the simulation to visualize them later. Thus, at each step, we record in a dataframe the position of each agent as well as its knowledge if it has any.
-
-Finally, it is in the environment that we define the do function that agents call to perform an action. This function is implemented with a functional paradigm.
-
-The code for the environment is found in the `model.py` file.
