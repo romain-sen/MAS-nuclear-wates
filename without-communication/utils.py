@@ -159,7 +159,7 @@ def init_agents(environment):
     environment.obj_id = initialize_zone(
         2 * width_third,
         environment.grid.width,
-        (0.66, 1),
+        (0.66, 0.99),
         environment,
         environment.obj_id,
     )

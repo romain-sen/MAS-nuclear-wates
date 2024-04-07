@@ -6,11 +6,12 @@ MAS (Multi Agent System) project : create different agents in a environnement to
 
 Run the simulation and see the visualization :
 
-`python3 ./without-communication/visualization.py`
+`python3 ./without-communication/server.py`
 
 ## TODO
 
-- Change method to pick waste so the agent can chose which waste to pick (instead of always the first)
+- Implement all three types of agents, smarter and able to finish the task
+- Implement communication between agents
 
 ## Table of Contents
 
