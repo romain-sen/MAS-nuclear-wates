@@ -59,16 +59,38 @@ class WasteAgent(Agent):
         return f"WasteAgent(id={self.unique_id}, color={self.color}, pos={self.pos})"
 
 
+class NeighboringType(enum.Enum):
+    DEPOSIT = 0
+    EMPTY = 1
+    WASTE = 2
+    AGENT = 3
+
+
+class Neighboring(TypedDict):
+    pos: Tuple[int, int]
+    type: NeighboringType
+    color: Optional[AgentColor]
+
+
 class Percept(TypedDict):
     radiactivity: float
     wastes: List[WasteAgent]
     pos: Tuple[int, int]
     other_on_pos: bool
     waste_on_pos: Optional[AgentColor]
+    surrounding: List[Neighboring]
 
     def __str__(self) -> str:
-        wastes_str = ", ".join([str(waste) for waste in self["wastes"]])
-        return f"Percept(radiactivity={self['radiactivity']}, wastes=[{wastes_str}], pos={self['pos']}, other_on_pos={self['other_on_pos']}, waste_on_pos={self['waste_on_pos']})"
+        wastes_str = ", ".join(str(waste) for waste in self.wastes)
+        surrounding_str = ", ".join(
+            f"Neighboring(pos={n.pos}, type={n.type}, color={n.color})"
+            for n in self.surrounding
+        )
+        return (
+            f"Percept(radiactivity={self.radiactivity}, wastes=[{wastes_str}], "
+            f"pos={self.pos}, other_on_pos={self.other_on_pos}, "
+            f"waste_on_pos={self.waste_on_pos}, surrounding=[{surrounding_str}])"
+        )
 
 
 class Knowledge(TypedDict):
@@ -149,3 +171,5 @@ class NuclearWasteModel(Model):
     def merge_wastes(
         self, waste_id1: int, waste_id2: int, agent_id: int, pos: tuple[int, int]
     ) -> WasteAgent: ...
+
+    def indicate_surroundings(self, pos: Tuple[int, int]) -> List[Neighboring]: ...

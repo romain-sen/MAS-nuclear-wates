@@ -31,6 +31,7 @@ class CleaningAgent(Agent):
             pos=(0, 0),
             other_on_pos=False,
             waste_on_pos=None,
+            surrounding=[],
         )
         self.action_temp = Action.STAY
 
