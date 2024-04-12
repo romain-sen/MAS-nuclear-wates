@@ -8,11 +8,7 @@ model = NuclearWasteModel(
     n_red_agents=10,
     n_wastes=10,
     max_wastes_handed=5,
-<<<<<<< HEAD
     strategy=1,
 )
-=======
-    )
->>>>>>> 2c4751d (experimental analysis on simulation)
 for i in range(10):
     model.step()
