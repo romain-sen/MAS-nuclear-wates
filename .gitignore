@@ -1,2 +1,5 @@
 .mypy_cache/
 .DS_Store
+without-communication/__pycache__/
+*.csv
+*.ipynb
