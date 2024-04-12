@@ -192,7 +192,7 @@ def add_upper_agents(environment, num_agents: int):
         agent = UpperLineAgent(
             unique_id=environment.obj_id,
             color=AgentColor.RED,
-            x_max=x,
+            x_max=environment.grid.width - 1,
             model=environment,
         )
         environment.schedule.add(agent)
