@@ -185,7 +185,9 @@ def add_upper_agents(environment, num_agents: int):
         environment.obj_id += 1
 
         # Set movement boundaries based on the agent's color.
-        x = environment.random.randrange(environment.grid.width)
+        x = environment.random.randrange(
+            2 * environment.grid.width // 3, environment.grid.width
+        )
         y = environment.random.randrange(environment.grid.height)
 
         # Create and add the agent to the environment.
