@@ -293,6 +293,10 @@ class NuclearWasteModel(Model):
     def indicate_surroundings(self, pos):
         """
         Indicate the surroundings of the agent at the given position.
+
+        Note : this function gives the surroundings of the agent at the given position, at a givent time.
+        But the agent can move, so the surroundings can change. And in one step, all agents move, but not at the same time.
+        So all agents can have different surroundings at the same time.
         """
         surrounding_agent = self.grid.get_neighbors(
             pos, moore=True, include_center=False
