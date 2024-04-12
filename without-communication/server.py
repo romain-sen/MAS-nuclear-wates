@@ -4,7 +4,7 @@ from mesa.visualization.ModularVisualization import ModularServer
 
 from model import NuclearWasteModel
 from object import WasteAgent, RadioactivityAgent
-from agent import DefaultAgent
+from agent import CleaningAgent
 from types_1 import AgentColor, DEPOSIT_RADIOACTIVITY
 
 MIN_COLOR_VALUE = 50  # The minimum color value for the radioactive color, to ensure it is visible and not black
@@ -81,7 +81,7 @@ def agent_portrayal(agent):
         portrayal["Layer"] = 0
         portrayal["Filled"] = "true"
 
-    elif isinstance(agent, DefaultAgent):
+    elif isinstance(agent, CleaningAgent):
         if agent.color == AgentColor.GREEN:
             portrayal["Shape"] = "without-communication/ressources/green_robot.png"
         elif agent.color == AgentColor.YELLOW:

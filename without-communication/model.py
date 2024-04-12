@@ -5,9 +5,8 @@ from mesa.datacollection import DataCollector
 
 from object import RadioactivityAgent, WasteAgent
 from action import handle_action
-from agent import DefaultAgent, CleaningAgent, RandomCleaningAgent
 
-from types_1 import AgentColor, PickedWastes, DEPOSIT_RADIOACTIVITY
+from types_1 import AgentColor, PickedWastes, DEPOSIT_RADIOACTIVITY, CleaningAgent
 from typing import List
 from utils import init_agents, find_picked_waste_by_id
 
@@ -37,6 +36,7 @@ class NuclearWasteModel(Model):
         width=10,
         height=10,
         max_wastes_handed=2,
+        upper_agent_proportion=0.5,
     ):
         super().__init__()
 
@@ -51,6 +51,13 @@ class NuclearWasteModel(Model):
         self.running = True
         self.height = height
         self.obj_id = 0
+        self.max_wastes_handed = max_wastes_handed
+        self.upper_agent_proportion = upper_agent_proportion
+
+        assert self.grid is not None, "Grid is not initialized."
+        assert self.num_agents > 0, "Invalid number of agents."
+        assert self.num_wastes >= 0, "Invalid number of wastes."
+
         self.max_wastes_handed = max_wastes_handed
         self.picked_wastes_list: List[PickedWastes] = []
 
