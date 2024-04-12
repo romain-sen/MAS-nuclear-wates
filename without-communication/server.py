@@ -103,23 +103,9 @@ height = 10
 size_pixel = 65
 
 model_params = {
-<<<<<<< HEAD
-<<<<<<< HEAD
-    "n_green_agents": mesa.visualization.Slider("Green Agents", 1, 1, 5),
-    "n_yellow_agents": mesa.visualization.Slider("Yellow Agents", 1, 1, 5),
-    "n_red_agents": mesa.visualization.Slider("Red Agents", 1, 1, 5),
-=======
     "n_green_agents": mesa.visualization.Slider("Green Agents", 3, 0, 5),
     "n_yellow_agents": mesa.visualization.Slider("Yellow Agents", 3, 0, 5),
     "n_red_agents": mesa.visualization.Slider("Red Agents", 3, 0, 5),
->>>>>>> 8f88357... upper_agent_v3
-    "n_wastes": mesa.visualization.Slider("Wastes", 10, 1, 20),
-=======
-    "n_green_agents": mesa.visualization.Slider("Green Agents", 3, 0, 5),
-    "n_yellow_agents": mesa.visualization.Slider("Yellow Agents", 3, 0, 5),
-    "n_red_agents": mesa.visualization.Slider("Red Agents", 3, 0, 5),
-    "n_wastes": mesa.visualization.Slider("Wastes", 10, 1, 50),
->>>>>>> 34862a0... upper_line_v4
     "max_wastes_handed": 2,
     "width": width,
     "height": height,
@@ -133,7 +119,6 @@ model_params = {
 grid = CanvasGrid(
     agent_portrayal, width, height, width * size_pixel, height * size_pixel
 )
-<<<<<<< HEAD
 
 chart = ChartModule(
     [{"Label": "waste_remaining", "Color": "Black"}],
@@ -143,10 +128,6 @@ chart = ChartModule(
 server = ModularServer(
     NuclearWasteModel, [grid, chart], "NuclearWasteModel", model_params
 )
-=======
-server = ModularServer(NuclearWasteModel, [
-                       grid], "NuclearWasteModel", model_params)
->>>>>>> 8f88357... upper_agent_v3
 server.port = 8521  # The default
 server.reset_model()
 server.launch()
