@@ -16,10 +16,11 @@ Run the simulation and see the visualization :
 ## Table of Contents
 
 1. [Project Introduction](#project-introduction)
-2. [Agents](#agents)
-3. [Environmental Objects](#environmental-objects)
-4. [Scheduler](#scheduler)
-5. [Environment](#environment)
+2. [Environment](#environment)
+3. [Agents](#agents)
+4. [Environmental Objects](#environmental-objects)
+5. [Scheduler](#scheduler)
+6. [Strategies](#strategies)
 
 ## Project Introduction
 
@@ -115,3 +116,13 @@ The code for these agents is in the `objects.py` file.
 ## Scheduler
 
 The scheduler is defined in the `schedule.py` file. It defines who is called and in what order at each step (this will be a random order).
+
+## Strategies
+
+### Strategy 1
+
+The way we implement the first strategy is by defining two different behaviors. So there is a class by behavior instead of a class by agent.
+
+The first behavior is for the majority of agents : they move randomly in their area and when they found an object, they bring it to the top of the zone. Here, they can either drop the waste, or pick one and merge it if they found the same waste at this place, and then drop it.
+
+The second behavior is applied to a fraction of the red agents. Some of them just stay on the top row of the grid and try to find all wastes to bring the red wasterd to the deposit zone.
