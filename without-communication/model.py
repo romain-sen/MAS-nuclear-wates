@@ -10,6 +10,8 @@ from types_1 import AgentColor, PickedWastes, DEPOSIT_RADIOACTIVITY, CleaningAge
 from typing import List
 from utils import init_agents, find_picked_waste_by_id
 
+import pandas as pd
+
 
 class NuclearWasteModel(Model):
     """
@@ -38,6 +40,7 @@ class NuclearWasteModel(Model):
         strategy=1,
     ):
         super().__init__()
+    
 
         self.grid = MultiGrid(width, height, True)
         self.num_agents = n_green_agents + n_yellow_agents + n_red_agents
@@ -59,22 +62,52 @@ class NuclearWasteModel(Model):
 
         self.max_wastes_handed = max_wastes_handed
         self.picked_wastes_list: List[PickedWastes] = []
-
         self.schedule = RandomActivation(self)
+
+        self.current_step = 0
 
         # Create the data collector
         self.datacollector = DataCollector(
-            agent_reporters={"Knowledge": "knowledge"},
-            model_reporters={"PickedWastes": "picked_wastes_list"},
-        )
+    agent_reporters={
+        "Grid_Width": lambda a: a.knowledge["grid_width"] if hasattr(a, 'knowledge') else None,
+        "Grid_Height": lambda a: a.knowledge["grid_height"] if hasattr(a, 'knowledge') else None,
+        "actions": lambda a: a.knowledge["actions"] if hasattr(a, 'knowledge') else None,
+        "percepts": lambda a: a.knowledge["percepts"] if hasattr(a, 'knowledge') else None,
+        #"x_max": lambda a: a.knowledge["x_max"] if hasattr(a, 'knowledge') else None
+        # Add more as needed.
+    },
+    model_reporters={"PickedWastes": "picked_wastes_list",
+                     "num_wastes": "num_wastes",
+                     "num_agents": "num_agents",
+                     "num_green_agents": "num_green_agents",
+                     "num_yellow_agents": "num_yellow_agents",
+                     "num_red_agents": "num_red_agents",
+                     "wastes_distribution": "wastes_distribution"},  # Assuming this is converted appropriately.
+)
 
         init_agents(
             self, n_green_agents, n_yellow_agents, n_red_agents, n_wastes, strategy
         )
 
+
+    def export_data(self):
+        """Export collected data to CSV files."""
+        model_data = self.datacollector.get_model_vars_dataframe()
+        agent_data = self.datacollector.get_agent_vars_dataframe()
+        agent_data.reset_index(inplace=True)
+        model_data.reset_index(inplace=True)
+        
+        model_data.to_csv('model_data.csv', index=False)
+        agent_data.to_csv('agent_data.csv', index=False)
+
+
     def step(self):
         self.datacollector.collect(self)
         self.schedule.step()
+        self.current_step += 1
+        if self.current_step == 2:
+            self.export_data()
+
 
     def do(self, agent, action):
         return handle_action(agent=agent, action=action, environment=self)
@@ -241,3 +274,7 @@ class NuclearWasteModel(Model):
         new_waste = WasteAgent(new_id, waste_color, self)
         # self.grid.place_agent(new_waste, self.get_agent_pos(agent_id))
         return new_waste
+
+
+
+
