@@ -66,7 +66,7 @@ class NuclearWasteModel(Model):
             model_reporters={"PickedWastes": "picked_wastes_list"},
         )
 
-        init_agents(self)
+        init_agents(self, n_green_agents, n_yellow_agents, n_red_agents, n_wastes)
 
     def step(self):
         self.datacollector.collect(self)
