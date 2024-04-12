@@ -1,5 +1,5 @@
 import mesa
-from mesa.visualization.modules import CanvasGrid
+from mesa.visualization.modules import CanvasGrid, ChartModule
 from mesa.visualization.ModularVisualization import ModularServer
 
 from model import NuclearWasteModel
@@ -116,7 +116,12 @@ model_params = {
 grid = CanvasGrid(
     agent_portrayal, width, height, width * size_pixel, height * size_pixel
 )
-server = ModularServer(NuclearWasteModel, [grid], "NuclearWasteModel", model_params)
+
+chart = ChartModule([{"Label": "waste_remaining",
+                      "Color": "Black"}],
+                    data_collector_name='datacollector')
+
+server = ModularServer(NuclearWasteModel, [grid, chart], "NuclearWasteModel", model_params)
 server.port = 8521  # The default
 server.reset_model()
 server.launch()
