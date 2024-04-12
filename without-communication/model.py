@@ -68,22 +68,21 @@ class NuclearWasteModel(Model):
 
         # Create the data collector
         self.datacollector = DataCollector(
-    agent_reporters={
-        "Grid_Width": lambda a: a.knowledge["grid_width"] if hasattr(a, 'knowledge') else None,
-        "Grid_Height": lambda a: a.knowledge["grid_height"] if hasattr(a, 'knowledge') else None,
-        "actions": lambda a: a.knowledge["actions"] if hasattr(a, 'knowledge') else None,
-        "percepts": lambda a: a.knowledge["percepts"] if hasattr(a, 'knowledge') else None,
-        #"x_max": lambda a: a.knowledge["x_max"] if hasattr(a, 'knowledge') else None
-        # Add more as needed.
-    },
-    model_reporters={"PickedWastes": "picked_wastes_list",
-                     "num_wastes": "num_wastes",
-                     "num_agents": "num_agents",
-                     "num_green_agents": "num_green_agents",
-                     "num_yellow_agents": "num_yellow_agents",
-                     "num_red_agents": "num_red_agents",
-                     "wastes_distribution": "wastes_distribution"},  # Assuming this is converted appropriately.
-)
+                                    agent_reporters={
+                                        "Grid_Width": lambda a: a.knowledge["grid_width"] if hasattr(a, 'knowledge') else None,
+                                        "Grid_Height": lambda a: a.knowledge["grid_height"] if hasattr(a, 'knowledge') else None,
+                                        "actions": lambda a: a.knowledge["actions"] if hasattr(a, 'knowledge') else None,
+                                        "percepts": lambda a: a.knowledge["percepts"] if hasattr(a, 'knowledge') else None
+                                    },
+                                    model_reporters={"PickedWastes": "picked_wastes_list",
+                                                    "num_wastes": "num_wastes",
+                                                    "waste_remaining": "waste_remaining",
+                                                    "num_agents": "num_agents",
+                                                    "num_green_agents": "num_green_agents",
+                                                    "num_yellow_agents": "num_yellow_agents",
+                                                    "num_red_agents": "num_red_agents",
+                                                    "wastes_distribution": "wastes_distribution"},  # Assuming this is converted appropriately.
+                                )
 
         init_agents(
             self, n_green_agents, n_yellow_agents, n_red_agents, n_wastes, strategy
@@ -105,7 +104,7 @@ class NuclearWasteModel(Model):
         self.datacollector.collect(self)
         self.schedule.step()
         self.current_step += 1
-        if self.current_step == 2:
+        if self.current_step == 1000: #sets the step numbr at which we create the csv file for datacollector 
             self.export_data()
 
 
