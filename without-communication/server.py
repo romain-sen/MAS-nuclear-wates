@@ -103,7 +103,8 @@ model_params = {
     "n_yellow_agents": mesa.visualization.Slider("Yellow Agents", 3, 1, 5),
     "n_red_agents": mesa.visualization.Slider("Red Agents", 3, 1, 5),
     "n_wastes": mesa.visualization.Slider("Wastes", 10, 1, 20),
-    "max_wastes_handed": mesa.visualization.Slider("Max Wastes Handed", 2, 2, 2),
+    "wastes_distribution": mesa.visualization.Slider("Waste Distribution", 1, 0, 10),
+    "max_wastes_handed": 2,
     "width": width,
     "height": height,
     "strategy": mesa.visualization.Choice(
@@ -117,11 +118,14 @@ grid = CanvasGrid(
     agent_portrayal, width, height, width * size_pixel, height * size_pixel
 )
 
-chart = ChartModule([{"Label": "waste_remaining",
-                      "Color": "Black"}],
-                    data_collector_name='datacollector')
+chart = ChartModule(
+    [{"Label": "waste_remaining", "Color": "Black"}],
+    data_collector_name="datacollector",
+)
 
-server = ModularServer(NuclearWasteModel, [grid, chart], "NuclearWasteModel", model_params)
+server = ModularServer(
+    NuclearWasteModel, [grid, chart], "NuclearWasteModel", model_params
+)
 server.port = 8521  # The default
 server.reset_model()
 server.launch()
