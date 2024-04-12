@@ -6,8 +6,9 @@ from types_1 import (
     DEPOSIT_RADIOACTIVITY,
     PickedWastes,
 )
-from agent import RandomCleaningAgent, DefaultAgent, UpperLineAgent
+
 from object import RadioactivityAgent, WasteAgent
+from agent_strat_1 import add_agents_strat_1
 
 
 def find_picked_waste_by_id(waste_id: int, picked_wastes_list: List[PickedWastes]):
@@ -57,7 +58,9 @@ def initialize_wastes(environment):
                 environment.grid.width // 3, 2 * environment.grid.width // 3
             )
         else:  # AgentColor.RED
-            x = environment.random.randrange(2 * environment.grid.width // 3)
+            x = environment.random.randrange(
+                2 * environment.grid.width // 3, environment.grid.width
+            )
         y = environment.random.randrange(environment.grid.height)
         waste = WasteAgent(
             unique_id=environment.obj_id, color=waste_color, model=environment
@@ -66,59 +69,10 @@ def initialize_wastes(environment):
         environment.grid.place_agent(waste, (x, y))
 
 
-def add_cleaning_agents(environment, num_agents: int, agent_color: AgentColor):
-    """
-    Adds cleaning agents to the environment.
+def init_agents(
+    environment, n_green_agents, n_yellow_agents, n_red_agents, n_wastes, strategy=1
+):
 
-    :param environment: The environment where agents are added.
-    :param num_agents: The number of agents to add.
-    :param agent_color: The specific color for all agents; if None, assigns random colors.
-    """
-    for i in range(num_agents):
-        environment.obj_id += 1
-
-        # Set movement boundaries based on the agent's color.
-        if agent_color == AgentColor.RED:
-            x = environment.random.randrange(
-                2 * environment.grid.width // 3, environment.grid.width
-            )
-        elif agent_color == AgentColor.YELLOW:
-            x = environment.random.randrange(
-                environment.grid.width // 3, 2 * environment.grid.width // 3
-            )
-        else:  # AgentColor.GREEN
-            x = environment.random.randrange(0, environment.grid.width // 3)
-
-        y = environment.random.randrange(environment.grid.height)
-
-        # Create and add the agent to the environment.
-        agent = DefaultAgent(
-            unique_id=environment.obj_id, color=agent_color, x_max=x, model=environment
-        )
-        environment.schedule.add(agent)
-        environment.grid.place_agent(agent, (x, y))
-
-
-def add_upper_agents(environment, num_agents: int):
-    for i in range(num_agents):
-        environment.obj_id += 1
-
-        # Set movement boundaries based on the agent's color.
-        x = environment.random.randrange(environment.grid.width)
-        y = environment.random.randrange(environment.grid.height)
-
-        # Create and add the agent to the environment.
-        agent = UpperLineAgent(
-            unique_id=environment.obj_id,
-            color=AgentColor.RED,
-            x_max=x,
-            model=environment,
-        )
-        environment.schedule.add(agent)
-        environment.grid.place_agent(agent, (x, y))
-
-
-def init_agents(environment):
     width_third = environment.grid.width // 3
 
     # Zone 1 (West): radioactivity from 0 to 0.33
@@ -144,10 +98,7 @@ def init_agents(environment):
     initialize_wastes(environment)
 
     # Add the cleaning agents
-    add_cleaning_agents(environment, environment.num_green_agents, AgentColor.GREEN)
-    add_cleaning_agents(environment, environment.num_yellow_agents, AgentColor.YELLOW)
-    number_of_upper_agents = max(environment.num_red_agents // 2, 1)
-    add_cleaning_agents(
-        environment, environment.num_red_agents - number_of_upper_agents, AgentColor.RED
-    )
-    add_upper_agents(environment, number_of_upper_agents)
+    if strategy == 1:
+        add_agents_strat_1(environment, n_green_agents, n_yellow_agents, n_red_agents)
+    else:  ## Implement other strategies
+        add_agents_strat_1(environment, n_green_agents, n_yellow_agents, n_red_agents)

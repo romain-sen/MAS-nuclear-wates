@@ -35,6 +35,7 @@ class NuclearWasteModel(Model):
         height=10,
         max_wastes_handed=2,
         upper_agent_proportion=0.5,
+        strategy=1,
     ):
         super().__init__()
 
@@ -50,6 +51,7 @@ class NuclearWasteModel(Model):
         self.obj_id = 0
         self.max_wastes_handed = max_wastes_handed
         self.upper_agent_proportion = upper_agent_proportion
+        self.strategy = strategy
 
         assert self.grid is not None, "Grid is not initialized."
         assert self.num_agents > 0, "Invalid number of agents."
@@ -66,7 +68,9 @@ class NuclearWasteModel(Model):
             model_reporters={"PickedWastes": "picked_wastes_list"},
         )
 
-        init_agents(self)
+        init_agents(
+            self, n_green_agents, n_yellow_agents, n_red_agents, n_wastes, strategy
+        )
 
     def step(self):
         self.datacollector.collect(self)
