@@ -20,7 +20,6 @@ class NuclearWasteModel(Model):
     - n_yellow_agents (int): The number of yellow cleaning agents in the model.
     - n_red_agents (int): The number of red cleaning agents in the model.
     - n_wastes (int): The total number of nuclear wastes in the model.
-    - wastes_distribution (number): The repartition of the wastes between the three colors. Must be between 0 and 10. 0 means more green wastes, 10 means more red wastes.
     - width (int): The width of the grid representing the environment.
     - height (int): The height of the grid representing the environment.
     - max_wastes_handed (int): The maximum number of wastes that an agent can carry at a time.
@@ -32,7 +31,6 @@ class NuclearWasteModel(Model):
         n_yellow_agents=5,
         n_red_agents=5,
         n_wastes=3,
-        wastes_distribution=5,
         width=10,
         height=10,
         max_wastes_handed=2,
@@ -47,7 +45,6 @@ class NuclearWasteModel(Model):
         self.num_red_agents = n_red_agents
         self.num_wastes = n_wastes
         self.waste_remaining = n_wastes
-        self.wastes_distribution = wastes_distribution
         self.running = True
         self.height = height
         self.obj_id = 0
