@@ -99,17 +99,17 @@ height = 10
 size_pixel = 65
 
 model_params = {
-    "n_green_agents": mesa.visualization.Slider("Green Agents", 3, 1, 5),
-    "n_yellow_agents": mesa.visualization.Slider("Yellow Agents", 3, 1, 5),
-    "n_red_agents": mesa.visualization.Slider("Red Agents", 3, 1, 5),
+    "n_green_agents": mesa.visualization.Slider("Green Agents", 1, 0, 5),
+    "n_yellow_agents": mesa.visualization.Slider("Yellow Agents", 0, 0, 5),
+    "n_red_agents": mesa.visualization.Slider("Red Agents", 0, 0, 5),
     "n_wastes": mesa.visualization.Slider("Wastes", 10, 1, 20),
     "max_wastes_handed": 2,
     "width": width,
     "height": height,
     "strategy": mesa.visualization.Choice(
         "Strategy",
-        value=1,
-        choices=[1],
+        value=2,
+        choices=[1, 2],
     ),
 }
 
