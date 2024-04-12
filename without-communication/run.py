@@ -7,7 +7,6 @@ model = NuclearWasteModel(
     n_yellow_agents=10,
     n_red_agents=10,
     n_wastes=10,
-    wastes_distribution=5,
     max_wastes_handed=5,
 )
 for i in range(10):
