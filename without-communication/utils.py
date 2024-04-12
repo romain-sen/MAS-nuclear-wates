@@ -6,7 +6,7 @@ from types_1 import (
     DEPOSIT_RADIOACTIVITY,
     PickedWastes,
 )
-from agent import RandomCleaningAgent, DefaultAgent
+from agent import RandomCleaningAgent, DefaultAgent, UpperLineAgent
 from object import RadioactivityAgent, WasteAgent
 
 
@@ -142,6 +142,25 @@ def add_cleaning_agents(environment, num_agents: int, agent_color: AgentColor):
         environment.grid.place_agent(agent, (x, y))
 
 
+def add_upper_agents(environment, num_agents: int):
+    for i in range(num_agents):
+        environment.obj_id += 1
+
+        # Set movement boundaries based on the agent's color.
+        x = environment.random.randrange(environment.grid.width)
+        y = environment.random.randrange(environment.grid.height)
+
+        # Create and add the agent to the environment.
+        agent = UpperLineAgent(
+            unique_id=environment.obj_id,
+            color=AgentColor.RED,
+            x_max=x,
+            model=environment,
+        )
+        environment.schedule.add(agent)
+        environment.grid.place_agent(agent, (x, y))
+
+
 def init_agents(environment):
     width_third = environment.grid.width // 3
 
@@ -170,4 +189,8 @@ def init_agents(environment):
     # Add the cleaning agents
     add_cleaning_agents(environment, environment.num_green_agents, AgentColor.GREEN)
     add_cleaning_agents(environment, environment.num_yellow_agents, AgentColor.YELLOW)
-    add_cleaning_agents(environment, environment.num_red_agents, AgentColor.RED)
+    number_of_upper_agents = max(environment.num_red_agents // 2, 1)
+    add_cleaning_agents(
+        environment, environment.num_red_agents - number_of_upper_agents, AgentColor.RED
+    )
+    add_upper_agents(environment, number_of_upper_agents)
