@@ -33,9 +33,10 @@ class DefaultAgent(CleaningAgent):
         # If the agent is on a waste, not on the top row and has a free spot, take it
         if (
             (last_percept["wastes"] is not None and len(
-                last_percept["wastes"]) < 2)
+                last_percept["wastes"]) < 1)
             and self.model.is_on_waste(self.pos) is not None
             and last_percept["pos"][1] < self.knowledge["grid_height"] - 1
+            and self.random.random() > 0.1
         ):
             action = Action.TAKE
 
@@ -83,6 +84,8 @@ class DefaultAgent(CleaningAgent):
                                     len(movables))]
             elif len(self.knowledge["percepts"]) == 1:
                 action = Action.UP
+        if self.random.random() > 0.5 and len(last_percept["wastes"]) > 0:
+            action = Action.DROP
         return action
 
 
