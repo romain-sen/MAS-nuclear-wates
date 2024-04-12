@@ -2,7 +2,7 @@ from object import WasteAgent
 from types_1 import Action, AgentColor, Percept, NuclearWasteModel, CleaningAgent
 
 
-def stays_in_area(pos, environment, color: AgentColor):
+def stays_in_area(pos, environment: NuclearWasteModel, color: AgentColor):
     """
     Check if the agent remains within its designated area based on its color.
 
@@ -34,8 +34,13 @@ def stays_in_area(pos, environment, color: AgentColor):
     return within_vertical_limits and within_horizontal_limits
 
 
-def move_agent(agent: CleaningAgent, action: Action, environment):
+def move_agent(agent: CleaningAgent, action: Action, environment: NuclearWasteModel):
     last_percept = agent.give_last_percept()
+
+    current_surroundings = environment.indicate_surroundings(agent.pos)
+    new_default_percept = last_percept.copy()
+    new_default_percept["surrounding"] = current_surroundings
+
     pos = agent.pos
     if action == Action.LEFT:
         if stays_in_area((pos[0] - 1, pos[1]), environment, agent.color):
@@ -46,9 +51,10 @@ def move_agent(agent: CleaningAgent, action: Action, environment):
                 pos=(pos[0] - 1, pos[1]),
                 other_on_pos=environment.others_on_pos(agent),
                 waste_on_pos=environment.is_on_waste(agent.pos),
+                surrounding=current_surroundings,
             )
         else:
-            return last_percept
+            return new_default_percept
     elif action == Action.RIGHT:
         if stays_in_area((pos[0] + 1, pos[1]), environment, agent.color):
             agent.model.grid.move_agent(agent, (pos[0] + 1, pos[1]))
@@ -58,9 +64,10 @@ def move_agent(agent: CleaningAgent, action: Action, environment):
                 pos=(pos[0] + 1, pos[1]),
                 other_on_pos=environment.others_on_pos(agent),
                 waste_on_pos=environment.is_on_waste(agent.pos),
+                surrounding=current_surroundings,
             )
         else:
-            return last_percept
+            return new_default_percept
     elif action == Action.UP:
         if stays_in_area((pos[0], pos[1] + 1), environment, agent.color):
             agent.model.grid.move_agent(agent, (pos[0], pos[1] + 1))
@@ -70,9 +77,10 @@ def move_agent(agent: CleaningAgent, action: Action, environment):
                 pos=(pos[0], pos[1] + 1),
                 other_on_pos=environment.others_on_pos(agent),
                 waste_on_pos=environment.is_on_waste(agent.pos),
+                surrounding=current_surroundings,
             )
         else:
-            return last_percept
+            return new_default_percept
     elif action == Action.DOWN:
         if stays_in_area((pos[0], pos[1] - 1), environment, agent.color):
             agent.model.grid.move_agent(agent, (pos[0], pos[1] - 1))
@@ -82,9 +90,10 @@ def move_agent(agent: CleaningAgent, action: Action, environment):
                 pos=(pos[0], pos[1] - 1),
                 other_on_pos=environment.others_on_pos(agent),
                 waste_on_pos=environment.is_on_waste(agent.pos),
+                surrounding=current_surroundings,
             )
         else:
-            return last_percept
+            return new_default_percept
     else:
         raise ValueError("Unknown action: {}".format(action))
 
@@ -92,6 +101,11 @@ def move_agent(agent: CleaningAgent, action: Action, environment):
 def take(agent: CleaningAgent, environment: NuclearWasteModel):
     # Get the last percept of the agent
     last_percept = agent.give_last_percept()
+
+    current_surroundings = environment.indicate_surroundings(agent.pos)
+    new_default_percept = last_percept.copy()
+    new_default_percept["surrounding"] = current_surroundings
+
     # Get the waste agent at the agent's position
     cell_content = environment.grid.get_cell_list_contents([agent.pos])
     waste_agents = [obj for obj in cell_content if isinstance(obj, WasteAgent)]
@@ -110,16 +124,23 @@ def take(agent: CleaningAgent, environment: NuclearWasteModel):
                 pos=agent.pos,
                 other_on_pos=environment.others_on_pos(agent),
                 waste_on_pos=environment.is_on_waste(agent.pos),
+                surrounding=current_surroundings,
             )
         except Exception as e:
             print(e)
-            return last_percept
-    return last_percept
+            return new_default_percept
+    else:
+        return new_default_percept
 
 
 def drop(agent: CleaningAgent, environment: NuclearWasteModel):
     # Get the last percept of the agent
     last_percept = agent.give_last_percept()
+
+    current_surroundings = environment.indicate_surroundings(agent.pos)
+    new_default_percept = last_percept.copy()
+    new_default_percept["surrounding"] = current_surroundings
+
     try:
         if len(last_percept["wastes"]) > 0:
             waste_to_drop = last_percept["wastes"][0].unique_id
@@ -135,15 +156,22 @@ def drop(agent: CleaningAgent, environment: NuclearWasteModel):
                 pos=agent.pos,
                 other_on_pos=environment.others_on_pos(agent),
                 waste_on_pos=environment.is_on_waste(agent.pos),
+                surrounding=current_surroundings,
             )
     except Exception as e:
         print(e)
-        return last_percept
+        last_percept["surrounding"] = environment.indicate_surroundings(agent.pos)
+        return new_default_percept
 
 
 def merge(agent: CleaningAgent, environment: NuclearWasteModel):
     # Get the last percept of the agent
     last_percept = agent.give_last_percept()
+
+    current_surroundings = environment.indicate_surroundings(agent.pos)
+    new_default_percept = last_percept.copy()
+    new_default_percept["surrounding"] = current_surroundings
+
     try:
         if len(last_percept["wastes"]) < 2:
             raise Exception("Not enough wastes to merge.")
@@ -161,10 +189,11 @@ def merge(agent: CleaningAgent, environment: NuclearWasteModel):
             pos=agent.pos,
             other_on_pos=environment.others_on_pos(agent),
             waste_on_pos=environment.is_on_waste(agent.pos),
+            surrounding=current_surroundings,
         )
     except Exception as e:
         print(e)
-        return last_percept
+        return new_default_percept
 
 
 def get_action_handler(action: Action):

@@ -6,7 +6,14 @@ from mesa.datacollection import DataCollector
 from object import RadioactivityAgent, WasteAgent
 from action import handle_action
 
-from types_1 import AgentColor, PickedWastes, DEPOSIT_RADIOACTIVITY, CleaningAgent
+from types_1 import (
+    AgentColor,
+    PickedWastes,
+    DEPOSIT_RADIOACTIVITY,
+    Neighboring,
+    NeighboringType,
+)
+from agent import CleaningAgent
 from typing import List
 from utils import init_agents, find_picked_waste_by_id
 
@@ -40,7 +47,6 @@ class NuclearWasteModel(Model):
         strategy=1,
     ):
         super().__init__()
-    
 
         self.grid = MultiGrid(width, height, True)
         self.num_agents = n_green_agents + n_yellow_agents + n_red_agents
@@ -68,26 +74,35 @@ class NuclearWasteModel(Model):
 
         # Create the data collector
         self.datacollector = DataCollector(
-                                    agent_reporters={
-                                        "Grid_Width": lambda a: a.knowledge["grid_width"] if hasattr(a, 'knowledge') else None,
-                                        "Grid_Height": lambda a: a.knowledge["grid_height"] if hasattr(a, 'knowledge') else None,
-                                        "actions": lambda a: a.knowledge["actions"] if hasattr(a, 'knowledge') else None,
-                                        "percepts": lambda a: a.knowledge["percepts"] if hasattr(a, 'knowledge') else None
-                                    },
-                                    model_reporters={"PickedWastes": "picked_wastes_list",
-                                                    "num_wastes": "num_wastes",
-                                                    "waste_remaining": "waste_remaining",
-                                                    "num_agents": "num_agents",
-                                                    "num_green_agents": "num_green_agents",
-                                                    "num_yellow_agents": "num_yellow_agents",
-                                                    "num_red_agents": "num_red_agents",
-                                                    "wastes_distribution": "wastes_distribution"},  # Assuming this is converted appropriately.
-                                )
+            agent_reporters={
+                "Grid_Width": lambda a: (
+                    a.knowledge["grid_width"] if hasattr(a, "knowledge") else None
+                ),
+                "Grid_Height": lambda a: (
+                    a.knowledge["grid_height"] if hasattr(a, "knowledge") else None
+                ),
+                "actions": lambda a: (
+                    a.knowledge["actions"] if hasattr(a, "knowledge") else None
+                ),
+                "percepts": lambda a: (
+                    a.knowledge["percepts"] if hasattr(a, "knowledge") else None
+                ),
+            },
+            model_reporters={
+                "PickedWastes": "picked_wastes_list",
+                "num_wastes": "num_wastes",
+                "waste_remaining": "waste_remaining",
+                "num_agents": "num_agents",
+                "num_green_agents": "num_green_agents",
+                "num_yellow_agents": "num_yellow_agents",
+                "num_red_agents": "num_red_agents",
+                "wastes_distribution": "wastes_distribution",
+            },  # Assuming this is converted appropriately.
+        )
 
         init_agents(
             self, n_green_agents, n_yellow_agents, n_red_agents, n_wastes, strategy
         )
-
 
     def export_data(self):
         """Export collected data to CSV files."""
@@ -95,18 +110,18 @@ class NuclearWasteModel(Model):
         agent_data = self.datacollector.get_agent_vars_dataframe()
         agent_data.reset_index(inplace=True)
         model_data.reset_index(inplace=True)
-        
-        model_data.to_csv('model_data.csv', index=False)
-        agent_data.to_csv('agent_data.csv', index=False)
 
+        model_data.to_csv("model_data.csv", index=False)
+        agent_data.to_csv("agent_data.csv", index=False)
 
     def step(self):
         self.datacollector.collect(self)
         self.schedule.step()
         self.current_step += 1
-        if self.current_step == 1000: #sets the step numbr at which we create the csv file for datacollector 
+        if (
+            self.current_step == 3
+        ):  # sets the step numbr at which we create the csv file for datacollector
             self.export_data()
-
 
     def do(self, agent, action):
         return handle_action(agent=agent, action=action, environment=self)
@@ -122,8 +137,9 @@ class NuclearWasteModel(Model):
     def others_on_pos(self, agent: CleaningAgent):
         """
         Check if there are other agents on the same position as the given agent.
+        In the cell, there are at least 2 agents (the agent and the grid agent).
         """
-        return len(self.grid.get_cell_list_contents([agent.pos])) > 1
+        return len(self.grid.get_cell_list_contents([agent.pos])) > 2
 
     def is_on_waste(self, pos):
         """
@@ -274,6 +290,39 @@ class NuclearWasteModel(Model):
         # self.grid.place_agent(new_waste, self.get_agent_pos(agent_id))
         return new_waste
 
+    def indicate_surroundings(self, pos):
+        """
+        Indicate the surroundings of the agent at the given position.
+        """
+        surrounding_agent = self.grid.get_neighbors(
+            pos, moore=True, include_center=False
+        )
+        surrounding_objects: List[Neighboring] = []
 
-
-
+        for agent in surrounding_agent:
+            if isinstance(agent, CleaningAgent):
+                surrounding_objects.append(
+                    Neighboring(
+                        type=NeighboringType.AGENT,
+                        agentColor=agent.indicate_color(),
+                        pos=agent.pos,
+                    )
+                )
+            elif isinstance(agent, WasteAgent):
+                surrounding_objects.append(
+                    Neighboring(
+                        type=NeighboringType.WASTE,
+                        agentColor=agent.indicate_color(),
+                        pos=agent.pos,
+                    )
+                )
+            elif isinstance(agent, RadioactivityAgent):
+                if agent.indicate_radioactivity() == DEPOSIT_RADIOACTIVITY:
+                    surrounding_objects.append(
+                        Neighboring(
+                            type=NeighboringType.DEPOSIT,
+                            agentColor=None,
+                            pos=agent.pos,
+                        )
+                    )
+        return surrounding_objects
