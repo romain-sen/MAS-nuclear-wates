@@ -103,7 +103,6 @@ model_params = {
     "n_yellow_agents": mesa.visualization.Slider("Yellow Agents", 3, 1, 5),
     "n_red_agents": mesa.visualization.Slider("Red Agents", 3, 1, 5),
     "n_wastes": mesa.visualization.Slider("Wastes", 10, 1, 20),
-    "wastes_distribution": mesa.visualization.Slider("Waste Distribution", 1, 0, 10),
     "max_wastes_handed": 2,
     "width": width,
     "height": height,
