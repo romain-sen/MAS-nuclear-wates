@@ -106,6 +106,11 @@ model_params = {
     "max_wastes_handed": mesa.visualization.Slider("Max Wastes Handed", 2, 2, 2),
     "width": width,
     "height": height,
+    "strategy": mesa.visualization.Choice(
+        "Strategy",
+        value=1,
+        choices=[1],
+    ),
 }
 
 grid = CanvasGrid(
