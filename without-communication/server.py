@@ -7,7 +7,8 @@ from object import WasteAgent, RadioactivityAgent
 from agent import CleaningAgent
 from types_1 import AgentColor, DEPOSIT_RADIOACTIVITY
 
-MIN_COLOR_VALUE = 50  # The minimum color value for the radioactive color, to ensure it is visible and not black
+# The minimum color value for the radioactive color, to ensure it is visible and not black
+MIN_COLOR_VALUE = 50
 
 
 def calculate_color_value(adjusted_value: float) -> int:
@@ -23,7 +24,8 @@ def calculate_color_value(adjusted_value: float) -> int:
     """
     if not 0 <= adjusted_value <= 0.33:
         raise ValueError(
-            "adjusted_value must be between 0 and 0.33, got: " + str(adjusted_value)
+            "adjusted_value must be between 0 and 0.33, got: " +
+            str(adjusted_value)
         )
 
     color_value = int(adjusted_value * (255 / 0.33))
