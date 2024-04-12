@@ -58,28 +58,6 @@ def initialize_wastes(environment):
                 environment.grid.width // 3, 2 * environment.grid.width // 3
             )
         else:  # AgentColor.RED
-            x = environment.random.randrange(2 * environment.grid.width // 3)
-        y = environment.random.randrange(environment.grid.height)
-        waste = WasteAgent(
-            unique_id=environment.obj_id, color=waste_color, model=environment
-        )
-        environment.schedule.add(waste)
-        environment.grid.place_agent(waste, (x, y))
-
-
-def add_cleaning_agents(environment, num_agents: int, agent_color: AgentColor):
-    """
-    Adds cleaning agents to the environment.
-
-    :param environment: The environment where agents are added.
-    :param num_agents: The number of agents to add.
-    :param agent_color: The specific color for all agents; if None, assigns random colors.
-    """
-    for i in range(num_agents):
-        environment.obj_id += 1
-
-        # Set movement boundaries based on the agent's color.
-        if agent_color == AgentColor.RED:
             x = environment.random.randrange(
                 2 * environment.grid.width // 3, environment.grid.width
             )
