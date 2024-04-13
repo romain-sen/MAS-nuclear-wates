@@ -65,7 +65,7 @@ class MergerAgent(CleaningAgent):
             
         # Check surrounding cells and take appropriate action
         else:
-            wastes = [(pos, type, color) for (pos, type, color) in last_percept["surrounding"] if type == NeighboringType.WASTE]
+            wastes = [(type, agentColor, pos) for (type, agentColor, pos) in last_percept["surrounding"] if type == NeighboringType.WASTE]
             print("wastes", wastes)
             print("surrounding", last_percept["surrounding"])
             if len(wastes) != 0:
