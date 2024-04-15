@@ -288,6 +288,8 @@ class NuclearWasteModel(Model):
         )
         self.picked_wastes_list.append(waste_merged)
 
+        self.waste_remaining -= 1
+
         new_waste = WasteAgent(new_id, waste_color, self)
         # self.grid.place_agent(new_waste, self.get_agent_pos(agent_id))
         return new_waste
