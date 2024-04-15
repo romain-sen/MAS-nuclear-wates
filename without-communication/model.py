@@ -122,6 +122,8 @@ class NuclearWasteModel(Model):
             self.current_step == 3
         ):  # sets the step numbr at which we create the csv file for datacollector
             self.export_data()
+        print("Total wastes remaining: ", self.waste_remaining)
+        print("Picked wastes: ", self.picked_wastes_list)
 
     def do(self, agent, action):
         return handle_action(agent=agent, action=action, environment=self)

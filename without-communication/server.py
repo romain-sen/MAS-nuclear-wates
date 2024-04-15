@@ -109,7 +109,7 @@ model_params = {
     "strategy": mesa.visualization.Choice(
         "Strategy",
         value=1,
-        choices=[1],
+        choices=[1, 3],
     ),
 }
 
