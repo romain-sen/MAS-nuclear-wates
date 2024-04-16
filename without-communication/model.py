@@ -68,6 +68,8 @@ class NuclearWasteModel(Model):
         self.red_wastes_remaining = 0
         self.yellow_wastes_remaining = 0
         self.green_wastes_remaining = 0
+        self.accessible_remaining_wastes = n_wastes
+        self.is_finished = False
 
         assert self.grid is not None, "Grid is not initialized."
         assert self.num_agents > 0, "Invalid number of agents."
@@ -76,8 +78,6 @@ class NuclearWasteModel(Model):
         self.max_wastes_handed = max_wastes_handed
         self.picked_wastes_list: List[PickedWastes] = []
         self.schedule = RandomActivation(self)
-
-        self.current_step = 0
 
         # Create the data collector
         self.datacollector = DataCollector(
@@ -100,6 +100,8 @@ class NuclearWasteModel(Model):
                 "red_wastes_remaining": "red_wastes_remaining",
                 "yellow_wastes_remaining": "yellow_wastes_remaining",
                 "green_wastes_remaining": "green_wastes_remaining",
+                "accessible_remaining_wastes": "accessible_remaining_wastes",
+                "is_finished": "is_finished",
             },
         )
 
@@ -107,26 +109,11 @@ class NuclearWasteModel(Model):
             self, n_green_agents, n_yellow_agents, n_red_agents, n_wastes, strategy
         )
 
-    def export_data(self):
-        """Export collected data to CSV files."""
-        model_data = self.datacollector.get_model_vars_dataframe()
-        agent_data = self.datacollector.get_agent_vars_dataframe()
-        agent_data.reset_index(inplace=True)
-        model_data.reset_index(inplace=True)
-
-        model_data.to_csv("model_data.csv", index=False)
-        agent_data.to_csv("agent_data.csv", index=False)
-
     def step(self):
         self.datacollector.collect(self)
         self.schedule.step()
-        self.current_step += 1
-        # if (
-        #     self.current_step == 3
-        # ):  # sets the step numbr at which we create the csv file for datacollector
-        #     self.export_data()
-        # print("Total wastes remaining: ", self.waste_remaining)
-        # print("Picked wastes: ", self.picked_wastes_list)
+        if self.accessible_remaining_wastes == 0:
+            self.is_finished = True
 
     def do(self, agent, action):
         return handle_action(agent=agent, action=action, environment=self)
@@ -236,6 +223,7 @@ class NuclearWasteModel(Model):
             if waste.wasteColor == AgentColor.RED:
                 self.picked_wastes_list.remove(waste)
                 self.waste_remaining -= 1
+                self.accessible_remaining_wastes -= 1
                 print(
                     f"Waste {waste_id} dropped on the deposit zone. Remaining wastes: {self.waste_remaining}"
                 )
@@ -292,6 +280,7 @@ class NuclearWasteModel(Model):
         self.picked_wastes_list.append(waste_merged)
 
         self.waste_remaining -= 1
+        self.accessible_remaining_wastes -= 1
 
         new_waste = WasteAgent(new_id, waste_color, self)
         # self.grid.place_agent(new_waste, self.get_agent_pos(agent_id))

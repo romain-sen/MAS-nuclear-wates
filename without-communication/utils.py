@@ -73,6 +73,24 @@ def initialize_wastes(environment):
         environment.grid.place_agent(waste, (x, y))
 
 
+def calculate_unaccessible_accessible_wastes(n_green_wastes, n_yellow_wastes) -> int:
+    unaccessible_total_wastes = 0
+    unaccessible_yellow_wastes = n_yellow_wastes % 2
+
+    # If there is one yellow waste unaccessible, it will be accessible if there are two green wastes for it
+    if unaccessible_yellow_wastes == 1 and n_green_wastes >= 2:
+        unaccessible_yellow_wastes = 0
+        n_green_wastes -= 2
+
+    unaccessible_green_wastes = n_green_wastes % 4
+    if unaccessible_green_wastes >= 2:
+        unaccessible_green_wastes -= 2
+        unaccessible_yellow_wastes += 1
+
+    unaccessible_total_wastes += unaccessible_yellow_wastes + unaccessible_green_wastes
+    return unaccessible_total_wastes
+
+
 def init_agents(
     environment, n_green_agents, n_yellow_agents, n_red_agents, n_wastes, strategy=1
 ):
@@ -100,7 +118,13 @@ def init_agents(
 
     # Add the wastes
     initialize_wastes(environment)
-
+    environment.accessible_remaining_wastes = (
+        n_wastes
+        - calculate_unaccessible_accessible_wastes(
+            environment.green_wastes_remaining,
+            environment.yellow_wastes_remaining,
+        )
+    )
     # Add the cleaning agents
     if strategy == 1:
         add_agents_strat_1(environment, n_green_agents, n_yellow_agents, n_red_agents)

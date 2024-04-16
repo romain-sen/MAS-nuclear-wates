@@ -18,7 +18,7 @@ params = {  # These are the parameters that will be passed to the model
 results = mesa.batch_run(
     NuclearWasteModel,
     parameters=params,
-    iterations=10,
+    iterations=15,
     max_steps=1500,
     number_processes=1,
     data_collection_period=1,
@@ -35,16 +35,18 @@ print(f"Results saved at {save_path}")
 
 
 df = results_df
-grouped = df.groupby("Step")["waste_remaining"].agg(["mean", "std"])
+grouped = df.groupby("Step")["accessible_remaining_wastes"].agg(["mean", "std"])
 plt.figure(figsize=(10, 6))
 
 for run_id in df["RunId"].unique():
     subset = df[df["RunId"] == run_id]
     plt.plot(
-        subset["Step"], subset["waste_remaining"], label=f"Run {run_id} Remaining Waste"
+        subset["Step"],
+        subset["accessible_remaining_wastes"],
+        label=f"Run {run_id} Remaining Waste",
     )
 
-nb_runs = len(df[df["waste_remaining"] == 0]["RunId"].unique())
+nb_runs = len(df[df["accessible_remaining_wastes"] == 0]["RunId"].unique())
 print(f"Number of runs that reached the end: {nb_runs}/{df['RunId'].nunique()}")
 
 plt.plot(
