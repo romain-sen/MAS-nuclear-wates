@@ -5,6 +5,46 @@ from agent import CleaningAgent
 from types_1 import AgentColor
 
 
+def get_random_default_move(env):
+    movables = [Action.UP, Action.DOWN, Action.LEFT, Action.RIGHT]
+    return movables[env.random.randrange(len(movables))]
+
+
+def get_default_move(pos, x_min, x_max, grid_height):
+    x, y = pos
+
+    almost_last_top_row = y == grid_height - 2
+    not_almost_last_top_row = y < grid_height - 2
+    last_top_row = y == grid_height - 1
+    last_bottom_row = y == 0
+    not_last_bottom_row = y > 0
+    first_col = x == x_min
+    last_col = x == x_max - 1
+    odd_col = x % 2 == 1
+    even_col = x % 2 == 0
+
+    if last_top_row:
+        if first_col:
+            return Action.DOWN
+        else:
+            return Action.LEFT
+
+    if even_col:
+        if not_last_bottom_row:
+            return Action.DOWN
+        elif last_bottom_row:
+            return Action.RIGHT
+
+    if odd_col:
+        if not_almost_last_top_row or (almost_last_top_row and last_col):
+            return Action.UP
+        elif almost_last_top_row:
+            return Action.RIGHT
+
+    print("Error in get_default_move")
+    return Action.STAY
+
+
 class GreenCleaningAgent(CleaningAgent):
     def deliberate(self) -> Action:
         """
@@ -13,8 +53,9 @@ class GreenCleaningAgent(CleaningAgent):
         But if at this place, there already is a green waste, it takes it and merges it with the waste it is carrying, then drops it.
         """
         last_percept = self.give_last_percept()
-        movables = [Action.UP, Action.DOWN, Action.LEFT, Action.RIGHT]
-        action = movables[self.random.randrange(len(movables))]
+        action = get_default_move(
+            self.pos, 0, self.knowledge["x_max"], self.knowledge["grid_height"]
+        )
 
         is_on_green_deposit = (
             last_percept["pos"][1] == self.knowledge["grid_height"] - 1
@@ -78,12 +119,15 @@ class YellowCleaningAgent(CleaningAgent):
         time_between_checking = 50
 
         last_percept = self.give_last_percept()
+        x_green_zone = self.knowledge["grid_width"] // 3
 
         # This is the default action if no other action is taken
-        movables = [Action.UP, Action.DOWN, Action.LEFT, Action.RIGHT]
-        action = movables[self.random.randrange(len(movables))]
-
-        x_green_zone = self.knowledge["grid_width"] // 3
+        action = get_default_move(
+            self.pos,
+            x_green_zone,
+            self.knowledge["x_max"],
+            self.knowledge["grid_height"],
+        )
 
         is_on_yellow_deposit = (
             self.pos[1] == self.knowledge["grid_height"] - 1
@@ -104,9 +148,9 @@ class YellowCleaningAgent(CleaningAgent):
         # Every time_between_checking steps, the agent moves to the green deposit if empty hands
         if self.step_count >= time_between_checking and has_empty_hands:
             if not is_on_green_deposit:
-                if self.pos[0] > x_green_zone:
+                if self.pos[0] >= x_green_zone:
                     action = Action.LEFT
-                if self.pos[1] < self.knowledge["grid_height"] - 1:
+                elif self.pos[1] < self.knowledge["grid_height"] - 1:
                     action = Action.UP
             # If is on the green deposit, and there is a waste, take it
             if is_on_green_deposit:
@@ -163,12 +207,15 @@ class RedCleaningAgent(CleaningAgent):
         time_between_checking = 50
 
         last_percept = self.give_last_percept()
+        x_yellow_zone = 2 * self.knowledge["grid_width"] // 3
 
         # This is the default action if no other action is taken
-        movables = [Action.UP, Action.DOWN, Action.LEFT, Action.RIGHT]
-        action = movables[self.random.randrange(len(movables))]
-
-        x_yellow_zone = 2 * self.knowledge["grid_width"] // 3
+        action = get_default_move(
+            self.pos,
+            x_yellow_zone,
+            self.knowledge["x_max"],
+            self.knowledge["grid_height"],
+        )
 
         is_on_red_deposit = (
             self.pos[1] == self.knowledge["grid_height"] - 1
@@ -189,7 +236,7 @@ class RedCleaningAgent(CleaningAgent):
         # Every time_between_checking steps, the agent moves to the yellow deposit if empty hands
         if self.step_count >= time_between_checking and has_empty_hands:
             if not is_on_yellow_deposit:
-                if self.pos[0] > x_yellow_zone:
+                if self.pos[0] >= x_yellow_zone:
                     action = Action.LEFT
                 if self.pos[1] < self.knowledge["grid_height"] - 1:
                     action = Action.UP
