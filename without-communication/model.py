@@ -20,6 +20,10 @@ from utils import init_agents, find_picked_waste_by_id
 import pandas as pd
 
 
+def objects_to_strings(objects):
+    return [str(obj) for obj in objects]
+
+
 class NuclearWasteModel(Model):
     """
     The environment of the model.
@@ -61,6 +65,9 @@ class NuclearWasteModel(Model):
         self.max_wastes_handed = max_wastes_handed
         self.upper_agent_proportion = upper_agent_proportion
         self.strategy = strategy
+        self.red_wastes_remaining = 0
+        self.yellow_wastes_remaining = 0
+        self.green_wastes_remaining = 0
 
         assert self.grid is not None, "Grid is not initialized."
         assert self.num_agents > 0, "Invalid number of agents."
@@ -75,29 +82,25 @@ class NuclearWasteModel(Model):
         # Create the data collector
         self.datacollector = DataCollector(
             agent_reporters={
-                "Grid_Width": lambda a: (
-                    a.knowledge["grid_width"] if hasattr(a, "knowledge") else None
-                ),
-                "Grid_Height": lambda a: (
-                    a.knowledge["grid_height"] if hasattr(a, "knowledge") else None
-                ),
-                "actions": lambda a: (
-                    a.knowledge["actions"] if hasattr(a, "knowledge") else None
-                ),
-                "percepts": lambda a: (
-                    a.knowledge["percepts"] if hasattr(a, "knowledge") else None
+                "Type": lambda a: type(a).__name__,
+                "Color": "color",
+                "Pos": "pos",
+                "PickedWastes": (
+                    lambda a: (
+                        objects_to_strings(a.percept_temp["wastes"])
+                        if hasattr(a, "percept_temp")
+                        else []
+                    )
                 ),
             },
             model_reporters={
-                "PickedWastes": "picked_wastes_list",
-                "num_wastes": "num_wastes",
+                "strategy": "strategy",
+                # "picked_wastes": (lambda m: objects_to_strings(m.picked_wastes_list)),
                 "waste_remaining": "waste_remaining",
-                "num_agents": "num_agents",
-                "num_green_agents": "num_green_agents",
-                "num_yellow_agents": "num_yellow_agents",
-                "num_red_agents": "num_red_agents",
-                "wastes_distribution": "wastes_distribution",
-            },  # Assuming this is converted appropriately.
+                "red_wastes_remaining": "red_wastes_remaining",
+                "yellow_wastes_remaining": "yellow_wastes_remaining",
+                "green_wastes_remaining": "green_wastes_remaining",
+            },
         )
 
         init_agents(
@@ -118,10 +121,10 @@ class NuclearWasteModel(Model):
         self.datacollector.collect(self)
         self.schedule.step()
         self.current_step += 1
-        if (
-            self.current_step == 3
-        ):  # sets the step numbr at which we create the csv file for datacollector
-            self.export_data()
+        # if (
+        #     self.current_step == 3
+        # ):  # sets the step numbr at which we create the csv file for datacollector
+        #     self.export_data()
         # print("Total wastes remaining: ", self.waste_remaining)
         # print("Picked wastes: ", self.picked_wastes_list)
 
