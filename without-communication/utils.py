@@ -9,6 +9,7 @@ from types_1 import (
 
 from object import RadioactivityAgent, WasteAgent
 from agent_strat_1 import add_agents_strat_1
+from agent_strat_3 import add_agents_strat_3
 
 
 def find_picked_waste_by_id(waste_id: int, picked_wastes_list: List[PickedWastes]):
@@ -100,5 +101,7 @@ def init_agents(
     # Add the cleaning agents
     if strategy == 1:
         add_agents_strat_1(environment, n_green_agents, n_yellow_agents, n_red_agents)
+    elif strategy == 3:
+        add_agents_strat_3(environment, n_green_agents, n_yellow_agents, n_red_agents)
     else:  ## Implement other strategies
         add_agents_strat_1(environment, n_green_agents, n_yellow_agents, n_red_agents)

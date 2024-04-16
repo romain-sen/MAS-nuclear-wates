@@ -34,6 +34,7 @@ class CleaningAgent(Agent):
             surrounding=[],
         )
         self.action_temp = Action.STAY
+        self.step_count = 0
 
     def deliberate(self) -> Action:
         pass
