@@ -94,6 +94,15 @@ def move_agent(agent: CleaningAgent, action: Action, environment: NuclearWasteMo
             )
         else:
             return new_default_percept
+    elif action == Action.STAY:
+        return Percept(
+            radiactivity=environment.get_radioactivity(pos),
+            wastes=last_percept["wastes"],
+            pos=pos,
+            other_on_pos=environment.others_on_pos(agent),
+            waste_on_pos=environment.is_on_waste(agent.pos),
+            surrounding=current_surroundings,
+        )
     else:
         raise ValueError("Unknown action: {}".format(action))
 
@@ -210,6 +219,9 @@ def get_action_handler(action: Action):
         ),
         Action.DOWN: (
             lambda agent, environment: move_agent(agent, Action.DOWN, environment)
+        ),
+        Action.STAY: (
+            lambda agent, environment: move_agent(agent, Action.STAY, environment)
         ),
         Action.TAKE: take,
         Action.DROP: drop,
