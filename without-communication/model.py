@@ -68,6 +68,8 @@ class NuclearWasteModel(Model):
         self.red_wastes_remaining = 0
         self.yellow_wastes_remaining = 0
         self.green_wastes_remaining = 0
+        self.accessible_remaining_wastes = n_wastes
+        self.is_finished = False
 
         assert self.grid is not None, "Grid is not initialized."
         assert self.num_agents > 0, "Invalid number of agents."
@@ -98,6 +100,8 @@ class NuclearWasteModel(Model):
                 "red_wastes_remaining": "red_wastes_remaining",
                 "yellow_wastes_remaining": "yellow_wastes_remaining",
                 "green_wastes_remaining": "green_wastes_remaining",
+                "accessible_remaining_wastes": "accessible_remaining_wastes",
+                "is_finished": "is_finished",
             },
         )
 
@@ -108,6 +112,8 @@ class NuclearWasteModel(Model):
     def step(self):
         self.datacollector.collect(self)
         self.schedule.step()
+        if self.accessible_remaining_wastes == 0:
+            self.is_finished = True
 
     def do(self, agent, action):
         return handle_action(agent=agent, action=action, environment=self)
@@ -217,6 +223,7 @@ class NuclearWasteModel(Model):
             if waste.wasteColor == AgentColor.RED:
                 self.picked_wastes_list.remove(waste)
                 self.waste_remaining -= 1
+                self.accessible_remaining_wastes -= 1
                 print(
                     f"Waste {waste_id} dropped on the deposit zone. Remaining wastes: {self.waste_remaining}"
                 )
@@ -273,6 +280,7 @@ class NuclearWasteModel(Model):
         self.picked_wastes_list.append(waste_merged)
 
         self.waste_remaining -= 1
+        self.accessible_remaining_wastes -= 1
 
         new_waste = WasteAgent(new_id, waste_color, self)
         # self.grid.place_agent(new_waste, self.get_agent_pos(agent_id))
