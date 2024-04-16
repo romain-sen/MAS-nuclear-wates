@@ -222,7 +222,7 @@ class RedCleaningAgent(CleaningAgent):
         if is_on_red_deposit:
             # If he has a waste, and there is a waste on the cell of the same color, and has free spot, take it
             if (
-                len(last_percept["wastes"]) == 1
+                len(last_percept["wastes"]) < self.knowledge["max_wastes_handed"]
                 and last_percept["waste_on_pos"] == AgentColor.RED
             ):
                 action = Action.TAKE
@@ -230,14 +230,6 @@ class RedCleaningAgent(CleaningAgent):
                 # If he has a waste, and there is a waste on the cell, drop it
                 if len(last_percept["wastes"]) > 0:
                     action = Action.DROP
-
-        # If the agent has two wastes, merge them  --  last condition so can override other actions
-        if len(last_percept["wastes"]) == 2:
-            if (
-                last_percept["wastes"][0].indicate_color()
-                == last_percept["wastes"][1].indicate_color()
-            ):
-                action = Action.MERGE
 
         return action
 

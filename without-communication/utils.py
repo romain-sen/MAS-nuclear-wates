@@ -54,14 +54,17 @@ def initialize_wastes(environment):
         )[0]
         if waste_color == AgentColor.GREEN:
             x = environment.random.randrange(environment.grid.width // 3)
+            environment.green_wastes_remaining += 1
         elif waste_color == AgentColor.YELLOW:
             x = environment.random.randrange(
                 environment.grid.width // 3, 2 * environment.grid.width // 3
             )
+            environment.yellow_wastes_remaining += 1
         else:  # AgentColor.RED
             x = environment.random.randrange(
                 2 * environment.grid.width // 3, environment.grid.width
             )
+            environment.red_wastes_remaining += 1
         y = environment.random.randrange(environment.grid.height)
         waste = WasteAgent(
             unique_id=environment.obj_id, color=waste_color, model=environment
