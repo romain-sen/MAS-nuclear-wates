@@ -10,8 +10,9 @@ Run the simulation and see the visualization :
 
 ## TODO
 
-- Implement all three types of agents, smarter and able to finish the task
 - Implement communication between agents
+- Allow agents to choose the waste they want to pick
+- Improve stategies
 
 ## Table of Contents
 
@@ -126,3 +127,14 @@ The way we implement the first strategy is by defining two different behaviors. 
 The first behavior is for the majority of agents : they move randomly in their area and when they found an object, they bring it to the top of the zone. Here, they can either drop the waste, or pick one and merge it if they found the same waste at this place, and then drop it.
 
 The second behavior is applied to a fraction of the red agents. Some of them just stay on the top row of the grid and try to find all wastes to bring the red wasterd to the deposit zone.
+
+
+### Strategy 3
+
+For this strategy, every agent has its behavior.
+
+Every agent clean only their own area. When an agent has a waste, he takes it to the top at the right bord where he can go. There, if he finds a waste with the same color as the one he holds, he takes it, merges it and then drops it. Otherwise, he just drops his waste and go back to looking for other wastes. Doing so, every agent has their own deposit zone (and the red agent's deposit zone is the actual deposit zone).
+
+However, the yellow and red agents have a specifity that the green one doesn't have. Every N step (defined with the variable `time_between_checking`), the agent go the deposit zone at his left. If he finds a waste of its color, he takes it and brings it to its own deposit zone. Here once again, if he can merge it with another waste, he does it.
+
+The exploration for all agents is random. However, he an agents goes to a zone that he is not responsible for (e.g. the yellow agent goes on the green area), he goes back to his area and continue to move randomly here.
