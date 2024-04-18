@@ -43,7 +43,7 @@ for run_id in df["RunId"].unique():
     plt.plot(
         subset["Step"],
         subset["accessible_remaining_wastes"],
-        label=f"Run {run_id} Remaining Waste",
+        # label=f"Run {run_id} Remaining Waste",
     )
 
 nb_runs = len(df[df["accessible_remaining_wastes"] == 0]["RunId"].unique())
@@ -56,9 +56,31 @@ plt.plot(
     color="black",
     linestyle="--",
 )
-plt.title("Evolution of Remaining Waste over Steps")
+plt.title("Strategy 3 : Evolution of Remaining Waste over Steps on grid 12x10 (Random)")
 plt.xlabel("Step")
 plt.ylabel("Waste Remaining")
 plt.legend()
 plt.grid(True)
+
+
+# Adding text annotation for parameters
+params_text = "\n".join(f"{key}: {value}" for key, value in params.items())
+params_text = f"Parameters:\n{params_text}"
+plt.annotate(
+    params_text,
+    xy=(0.7, 0.68),
+    xycoords="axes fraction",
+    fontsize=8,
+    bbox=dict(boxstyle="round,pad=0.3", edgecolor="gray", facecolor="whitesmoke"),
+)
+
+# Add a comment about the number of runs that reached the end
+plt.annotate(
+    f"Number of finished runs: {nb_runs}/{df['RunId'].nunique()}",
+    xy=(0.7, 0.6),
+    xycoords="axes fraction",
+    fontsize=8,
+    bbox=dict(boxstyle="round,pad=0.3", edgecolor="gray", facecolor="whitesmoke"),
+)
+
 plt.show()
