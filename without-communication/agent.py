@@ -24,6 +24,9 @@ class CleaningAgent(Agent):
             "grid_height": self.model.grid.height,
             "x_max": x_max,
             "max_wastes_handed": self.model.max_wastes_handed,
+            "last_pos": (0, 0),
+            "have_saved_last_pos": False,
+            "go_back": False,
         }
         self.percept_temp = Percept(
             radiactivity=0,
@@ -44,6 +47,10 @@ class CleaningAgent(Agent):
         action = self.deliberate()
         self.action_temp = action
         self.percept_temp = self.model.do(self, action)
+        if self.pos == self.knowledge["last_pos"]:
+            self.knowledge["go_back"] = False
+            self.knowledge["have_saved_last_pos"] = False
+            self.knowledge["last_pos"] = self.pos
 
     def give_last_percept(self) -> Percept:
         return self.percept_temp

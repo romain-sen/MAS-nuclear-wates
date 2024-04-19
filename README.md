@@ -128,13 +128,26 @@ The first behavior is for the majority of agents : they move randomly in their a
 
 The second behavior is applied to a fraction of the red agents. Some of them just stay on the top row of the grid and try to find all wastes to bring the red wasterd to the deposit zone.
 
-
-### Strategy 3
+## Strategy 3
 
 For this strategy, every agent has its behavior.
 
 Every agent clean only their own area. When an agent has a waste, he takes it to the top at the right bord where he can go. There, if he finds a waste with the same color as the one he holds, he takes it, merges it and then drops it. Otherwise, he just drops his waste and go back to looking for other wastes. Doing so, every agent has their own deposit zone (and the red agent's deposit zone is the actual deposit zone).
 
-However, the yellow and red agents have a specifity that the green one doesn't have. Every N step (defined with the variable `time_between_checking`), the agent go the deposit zone at his left. If he finds a waste of its color, he takes it and brings it to its own deposit zone. Here once again, if he can merge it with another waste, he does it.
+For the first implementation, the yellow and red agents have a specifity that the green one doesn't have. Every N step (defined with the variable `time_between_checking`), the agent go the deposit zone at his left. If he finds a waste of its color, he takes it and brings it to its own deposit zone. Here once again, if he can merge it with another waste, he does it.
 
-The exploration for all agents is random. However, he an agents goes to a zone that he is not responsible for (e.g. the yellow agent goes on the green area), he goes back to his area and continue to move randomly here.
+The exploration for all agents is random. However, he an agents goes to a zone that he is not responsible for (e.g. the yellow agent goes on the green area), he goes back to his area and continue to move randomly here. Here are the results on the small grid with only one agent by zone.
+
+We also implement a movement strategy for the agents based on the following pattern to be sure to explore all the area.
+
+![New movement strategy](./assets/grid-moves.png)
+
+However, this implementation doesn't work with large grid because the agents go every N step to checks the previous zone if they can take some wastes. Then it restarts the pattern from the beginning. This is still not optimal, and cannot scale to big grids because the agents will always go check the previous zone before finishing their own. That is why we improved the pattern strategy by saving the last position the agent was, so when it has dropped a waste, it goes back to it.
+
+Here are the results of the strategies on a 12x10 grid with one agents by zone on 15 simulations.
+
+|                             Random moves                              |                                Pattern Strategy                                |                             Pattern Improved                              |
+| :-------------------------------------------------------------------: | :----------------------------------------------------------------------------: | :-----------------------------------------------------------------------: |
+| ![Results of the strategy 3 with random moves](./assets/Strat3-1.png) | ![Results of the strategy 3 with new movement strategy](./assets/Strat3-2.png) | ![Results of the strategy 3 with pattern improved](./assets/Strat3-3.png) |
+
+We can see that with the random moves, not all simulations finish. With the new movement strategy, all simulations finish between 200 and 300 steps in average. With the improved pattern, all simulations finish between 100 and 200 steps in average.
