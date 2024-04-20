@@ -69,7 +69,7 @@ class NuclearWasteModel(Model):
         self.yellow_wastes_remaining = 0
         self.green_wastes_remaining = 0
         self.accessible_remaining_wastes = n_wastes
-        self.is_finished = False
+        self.is_finished = 0
 
         assert self.grid is not None, "Grid is not initialized."
         assert self.num_agents > 0, "Invalid number of agents."
@@ -113,7 +113,9 @@ class NuclearWasteModel(Model):
         self.datacollector.collect(self)
         self.schedule.step()
         if self.accessible_remaining_wastes == 0:
-            self.is_finished = True
+            self.is_finished += 1
+            if self.is_finished == 1:
+                print("All accessible wastes are cleaned.")
 
     def do(self, agent, action):
         return handle_action(agent=agent, action=action, environment=self)

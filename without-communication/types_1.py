@@ -99,6 +99,9 @@ class Knowledge(TypedDict):
     grid_width: int
     grid_height: int
     max_wastes_handed: int
+    last_pos: Tuple[int, int]
+    have_saved_last_pos: bool
+    go_back: bool
 
 
 class PickedWastes:

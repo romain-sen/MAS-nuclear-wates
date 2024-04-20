@@ -96,15 +96,16 @@ def agent_portrayal(agent):
     return portrayal
 
 
-width = 12
-height = 10
-size_pixel = 65
+multiplicator = 5
+width = 12 * multiplicator
+height = 10 * multiplicator
+size_pixel = 65 // multiplicator
 
 model_params = {
     "n_green_agents": mesa.visualization.Slider("Green Agents", 1, 1, 5),
     "n_yellow_agents": mesa.visualization.Slider("Yellow Agents", 1, 1, 5),
     "n_red_agents": mesa.visualization.Slider("Red Agents", 1, 1, 5),
-    "n_wastes": mesa.visualization.Slider("Wastes", 10, 1, 20),
+    "n_wastes": mesa.visualization.Slider("Wastes", 10, 1, 50),
     "max_wastes_handed": 2,
     "width": width,
     "height": height,
