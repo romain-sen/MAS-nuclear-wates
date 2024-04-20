@@ -92,46 +92,79 @@ class GreenCleaningAgent(CleaningAgent):
             last_percept["pos"][1] == self.knowledge["grid_height"] - 1
             and self.pos[0] == self.knowledge["x_max"] - 1
         )
+        is_on_yellow_deposit = (
+            last_percept["pos"][1] == self.knowledge["grid_height"] - 2
+            and self.pos[0] == self.knowledge["x_max"] - 1
+        )
+
+        waste_on_pos = self.model.is_on_waste(self.pos)
+        first_waste_in_hand = (
+            last_percept["wastes"][0] if len(last_percept["wastes"]) > 0 else None
+        )
+        second_waste_in_hand = (
+            last_percept["wastes"][1] if len(last_percept["wastes"]) > 1 else None
+        )
+        has_free_spot = (
+            len(last_percept["wastes"]) < self.knowledge["max_wastes_handed"]
+        )
 
         # If Agent is on the "deposit green" cell, so the top and rightmost green corner
         if is_on_green_deposit:
             # If he has a waste, and there is a waste on the cell of the same color, and has free spot, take it
-            if (
-                len(last_percept["wastes"]) == 1
-                and last_percept["waste_on_pos"] == AgentColor.GREEN
-            ):
+            if len(last_percept["wastes"]) == 1 and waste_on_pos == AgentColor.GREEN:
                 action = Action.TAKE
             else:
                 # If he has a waste, and there is a waste on the cell, drop it
-                if len(last_percept["wastes"]) > 0:
+                if (
+                    first_waste_in_hand is not None
+                    and first_waste_in_hand.indicate_color() == AgentColor.GREEN
+                ):
                     action = Action.DROP
                     return_to_last_pos(self)
+                elif (
+                    first_waste_in_hand is not None
+                    and first_waste_in_hand.indicate_color() == AgentColor.YELLOW
+                ):
+                    action = Action.DOWN
+
+        if is_on_yellow_deposit:
+            if (
+                first_waste_in_hand is not None
+                and first_waste_in_hand.indicate_color() == AgentColor.YELLOW
+            ):
+                action = Action.DROP
+                return_to_last_pos(self)
+            elif (
+                first_waste_in_hand is not None
+                and first_waste_in_hand.indicate_color() == AgentColor.GREEN
+            ):
+                action = Action.UP
 
         # If the agent is on a waste, take it if not already carrying the maximum waste allowed
         if (
-            self.model.is_on_waste(self.pos) is AgentColor.GREEN
-            and len(last_percept["wastes"]) < self.knowledge["max_wastes_handed"]
+            waste_on_pos is AgentColor.GREEN
+            and has_free_spot
             and not is_on_green_deposit
         ):
             action = Action.TAKE
 
         # If carrying a waste, move to top row at the rightmost allowed position
-        if len(last_percept["wastes"]) > 0:
-            if (
-                self.pos[1] < self.knowledge["grid_height"] - 1
-            ):  # if not at the top row, move up
-                action = Action.UP
-                # Save the last position to go back to it
-                save_last_pos(self)
-            else:
+        if first_waste_in_hand is not None:
+            if first_waste_in_hand.indicate_color() == AgentColor.GREEN:
                 if (
+                    self.pos[1] < self.knowledge["grid_height"] - 1
+                ):  # if not at the top row, move up
+                    action = Action.UP
+                    # Save the last position to go back to it
+                    save_last_pos(self)
+                elif (
                     self.pos[0] < self.knowledge["x_max"] - 1
                 ):  # if not at the x_max position, move right
                     action = Action.RIGHT
                     save_last_pos(self)
 
         # If the agent has two wastes, merge them  --  last condition so can override other actions
-        if len(last_percept["wastes"]) == 2:
+        if second_waste_in_hand is not None:
             if (
                 last_percept["wastes"][0].indicate_color()
                 == last_percept["wastes"][1].indicate_color()
@@ -162,17 +195,33 @@ class YellowCleaningAgent(CleaningAgent):
             self.knowledge["last_pos"],
         )
 
-        is_on_yellow_deposit = (
-            self.pos[1] == self.knowledge["grid_height"] - 1
-            and self.pos[0] == self.knowledge["x_max"] - 1
-        )
-
         is_on_green_deposit = (
             self.pos[1] == self.knowledge["grid_height"] - 1
             and self.pos[0] == x_green_zone - 1
         )
 
+        is_on_yellow_deposit = (
+            self.pos[1] == self.knowledge["grid_height"] - 1
+            and self.pos[0] == self.knowledge["x_max"] - 1
+        )
+
+        is_on_red_deposit = (
+            self.pos[1] == self.knowledge["grid_height"] - 2
+            and self.pos[0] == self.knowledge["x_max"] - 1
+        )
+
         has_empty_hands = len(last_percept["wastes"]) == 0
+        has_free_spot = (
+            len(last_percept["wastes"]) < self.knowledge["max_wastes_handed"]
+        )
+        waste_on_pos = self.model.is_on_waste(self.pos)
+
+        first_waste_in_hand = (
+            last_percept["wastes"][0] if len(last_percept["wastes"]) > 0 else None
+        )
+        second_waste_in_hand = (
+            last_percept["wastes"][1] if len(last_percept["wastes"]) > 1 else None
+        )
 
         # If the agent is on the green zone, move to the yellow one to work on it
         if self.pos[0] < x_green_zone:
@@ -191,7 +240,7 @@ class YellowCleaningAgent(CleaningAgent):
             if is_on_green_deposit:
                 self.step_count = 0
                 return_to_last_pos(self)
-                if last_percept["waste_on_pos"] == AgentColor.YELLOW:
+                if waste_on_pos == AgentColor.YELLOW:
                     action = Action.TAKE
                 # else:
                 #     action = Action.STAY
@@ -219,18 +268,40 @@ class YellowCleaningAgent(CleaningAgent):
         if is_on_yellow_deposit:
             # If he has a waste, and there is a waste on the cell of the same color, and has free spot, take it
             if (
-                len(last_percept["wastes"]) == 1
-                and last_percept["waste_on_pos"] == AgentColor.YELLOW
+                has_free_spot
+                and first_waste_in_hand is not None
+                and waste_on_pos == AgentColor.YELLOW
             ):
                 action = Action.TAKE
             else:
                 # If he has a waste, and there is a waste on the cell, drop it
-                if len(last_percept["wastes"]) > 0:
+                if (
+                    first_waste_in_hand is not None
+                    and first_waste_in_hand.indicate_color() == AgentColor.YELLOW
+                ):
                     action = Action.DROP
                     return_to_last_pos(self)
+                elif (
+                    first_waste_in_hand is not None
+                    and first_waste_in_hand.indicate_color() == AgentColor.RED
+                ):
+                    action = Action.DOWN
+
+        if is_on_red_deposit:
+            if (
+                first_waste_in_hand is not None
+                and first_waste_in_hand.indicate_color() == AgentColor.RED
+            ):
+                action = Action.DROP
+                return_to_last_pos(self)
+            elif (
+                first_waste_in_hand is not None
+                and first_waste_in_hand.indicate_color() == AgentColor.YELLOW
+            ):
+                action = Action.UP
 
         # If the agent has two wastes, merge them  --  last condition so can override other actions
-        if len(last_percept["wastes"]) == 2:
+        if second_waste_in_hand is not None:
             if (
                 last_percept["wastes"][0].indicate_color()
                 == last_percept["wastes"][1].indicate_color()
@@ -271,11 +342,12 @@ class RedCleaningAgent(CleaningAgent):
         )
 
         is_on_yellow_deposit = (
-            self.pos[1] == self.knowledge["grid_height"] - 1
+            self.pos[1] == self.knowledge["grid_height"] - 2
             and self.pos[0] == x_yellow_zone - 1
         )
 
         has_empty_hands = len(last_percept["wastes"]) == 0
+        waste_on_pos = self.model.is_on_waste(self.pos)
 
         # If the agent is on the yellow zone, move to the yellow one to work on it
         if self.pos[0] < x_yellow_zone:
@@ -287,14 +359,14 @@ class RedCleaningAgent(CleaningAgent):
                 if self.pos[0] >= x_yellow_zone:
                     action = Action.LEFT
                     save_last_pos(self)
-                if self.pos[1] < self.knowledge["grid_height"] - 1:
+                if self.pos[1] < self.knowledge["grid_height"] - 2:
                     action = Action.UP
                     save_last_pos(self)
             # If is on the yellow deposit, and there is a waste, take it
             if is_on_yellow_deposit:
                 self.step_count = 0
                 return_to_last_pos(self)
-                if last_percept["waste_on_pos"] == AgentColor.RED:
+                if waste_on_pos == AgentColor.RED:
                     action = Action.TAKE
                 # else:
                 #     action = Action.STAY
@@ -323,7 +395,7 @@ class RedCleaningAgent(CleaningAgent):
             # If he has a waste, and there is a waste on the cell of the same color, and has free spot, take it
             if (
                 len(last_percept["wastes"]) < self.knowledge["max_wastes_handed"]
-                and last_percept["waste_on_pos"] == AgentColor.RED
+                and waste_on_pos == AgentColor.RED
             ):
                 action = Action.TAKE
             else:
