@@ -2,11 +2,19 @@
 
 MAS (Multi Agent System) project : create different agents in a environnement to clear 3 areas with nuclear wastes.
 
+Group 10
+
 ## Run the simulation
+
+First, install the requirements ! (see the file `requirements.txt`)
 
 Run the simulation and see the visualization :
 
-`python3 ./without-communication/server.py`
+`python3 ./robot_mission_10/server.py`
+
+Run the simulation on N iterration and get the graph of the global performance :
+
+`python3 ./robot_mission_10/run.py`
 
 ## TODO
 
