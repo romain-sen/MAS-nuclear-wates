@@ -16,12 +16,6 @@ Run the simulation on N iterration and get the graph of the global performance :
 
 `python3 ./robot_mission_10/run.py`
 
-## TODO
-
-- Implement communication between agents
-- Allow agents to choose the waste they want to pick
-- Improve stategies
-
 ## Table of Contents
 
 1. [Project Introduction](#project-introduction)
